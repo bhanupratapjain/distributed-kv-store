@@ -6,6 +6,15 @@ https://codeshare.io/Bylwl
 
 # Team
 - [bhanupratapjain](https://github.ccs.neu.edu/bhanupratapjain)
-- [sorabhb](https://github.ccs.neu.edu/sorabhb)
+- [sourabhb](https://github.ccs.neu.edu/sourabhb)
 - [vignushu](https://github.ccs.neu.edu/vignushu)
+
+# TO DO
+# Save to Files
+# Implement Memcached
+# Implement Master
+# Multi Thread Server
+# Exception Handling in Server and Client
+# Server - Server Communication
+
 
