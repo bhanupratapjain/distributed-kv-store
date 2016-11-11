@@ -2,13 +2,13 @@ import socket
 
 
 class Server:
-    def __init__(self, ip, port):
+    def __init__(self, address, lb_address):
         # create an INET, STREAMing socket
         self.socket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
         self.ip = ip
         self.port = port
-        self.store = {}
+        self.store = None  # KeyStore
 
     def start(self):
         self.socket.bind((self.ip, self.port))
@@ -30,9 +30,11 @@ class Server:
     def stop(self):
         pass
 
+    # Calls Keystores API
     def get(self, key):
         return self.store[key]
 
+    # Same
     def set(self, key, value):
         self.store[key] = value
 
