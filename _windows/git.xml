@@ -1,0 +1,6 @@
+<application>
+  <component name="Git.Application.Settings">
+    <option name="myPathToGit" value="C:\Users\uvign\AppData\Local\GitHub\PortableGit_d76a6a98c9315931ec4927243517bc09e9b731a0\cmd\git.exe" />
+    <option name="SSH_EXECUTABLE" value="IDEA_SSH" />
+  </component>
+</application>
