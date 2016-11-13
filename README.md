@@ -8,13 +8,10 @@ Distributed Key Value Store
 - go to the project root 
 - run `pip install --editable .`
 
-# Design Strategy
+# Monitor Utilities
+- `sudo apt-get install htop` - to monitor the process. 
+- `ss -l -p -n | grep ",<PID>,"` - to monitor open ports of a process.
 
-
-# Team
-- [bhanupratapjain](https://github.ccs.neu.edu/bhanupratapjain)
-- [sourabhb](https://github.ccs.neu.edu/sourabhb)
-- [vignushu](https://github.ccs.neu.edu/vignushu)
 
 # TO DO
 - Save to Files
@@ -24,7 +21,10 @@ Distributed Key Value Store
 - Exception Handling in Server and Client
 - Server - Server Communication
 
+# Design Strategy
 
-# Monitor Utilities
-- `sudo apt-get install htop` - to monitor the process. 
-- `ss -l -p -n | grep ",<PID>,"` - to monitor open ports of a process.
+
+# Team
+- [bhanupratapjain](https://github.ccs.neu.edu/bhanupratapjain)
+- [sourabhb](https://github.ccs.neu.edu/sourabhb)
+- [vignushu](https://github.ccs.neu.edu/vignushu)
