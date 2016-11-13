@@ -1,6 +1,6 @@
 import socket
 from keystore import KeyStore
-
+from request_parser import ProtoParser
 
 class Server:
     def __init__(self, address,port , lb_address):
@@ -20,9 +20,9 @@ class Server:
             # ct = client_thread(clientsocket)
             # ct.run()
             msg = clientsocket.recv(1000)
-            parts = msg.split()
-            #ProtoParser.parse()
-            print msg
+            #parts = msg.split()
+            parts = ProtoParser.parse(msg)
+
             if parts[0] == "set":
                 self.set(parts[1], parts[2])
                 clientsocket.send("Done")
