@@ -1,18 +1,18 @@
 # distributed-kv-store
 Distributed Key Value Store
 
-# Setup 
+## Setup 
 - `sudo apt-get install gcc python-dev python-pip`
 - create a virtual env with `Python 2.7`
 - go to the project root 
 - run `pip install --editable .`
 
-# Monitor Utilities
+## Monitor Utilities
 - `sudo apt-get install htop` - to monitor the process. 
 - `ss -l -p -n | grep ",<PID>,"` - to monitor open ports of a process.
 
 
-# TO DO
+## TO DO
 - Save to Files
 - Implement Memcached
 - Implement Master
@@ -20,10 +20,10 @@ Distributed Key Value Store
 - Exception Handling in Server and Client
 - Server - Server Communication
 
-# Design Strategy
+## Design Strategy
 
 
-# Team
+## Team
 - [bhanupratapjain](https://github.ccs.neu.edu/bhanupratapjain)
 - [sourabhb](https://github.ccs.neu.edu/sourabhb)
 - [vignushu](https://github.ccs.neu.edu/vignushu)
