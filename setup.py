@@ -9,6 +9,7 @@ setup(name='Distributed Key Value Store',
       py_modules=['store'],
       install_requires=[
           'Click',
+          'psutil',
       ],
       entry_points='''
         [console_scripts]

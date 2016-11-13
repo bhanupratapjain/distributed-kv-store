@@ -31,6 +31,6 @@ class Client:
 
 
 if __name__ == "__main__":
-    client = Client("127.0.0.1", 6000, "127.0.0.1", 5002)
-    client.set("hello", "1000")
-    client.get("hello")
+    client = Client("127.0.0.1", 6000, "127.0.0.1", 5001)
+    client.set("as", "2000")
+    client.get("as")
