@@ -14,8 +14,8 @@ class Server:
         # self.store = dict()  # KeyStore
         self.store = KeyStore()  # KeyStore
 
-    def register(self):
-        self.
+    # def register(self):
+        # self.
 
     def start(self):
         self.socket.bind((self.ip, self.port))
