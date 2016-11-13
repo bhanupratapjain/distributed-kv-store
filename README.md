@@ -2,6 +2,8 @@
 Distributed Key Value Store
 
 # Setup 
+- `sudo apt-get install gcc python-dev python-pip`
+
 - create a virtual env with `Python 2.7`
 - go to the project root 
 - run `pip install --editable .`
