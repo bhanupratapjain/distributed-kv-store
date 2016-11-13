@@ -25,3 +25,6 @@ Distributed Key Value Store
 - Server - Server Communication
 
 
+# Monitor Utilities
+- `sudo apt-get install htop` - to monitor the process. 
+- `ss -l -p -n | grep ",<PID>,"` - to monitor open ports of a process.
