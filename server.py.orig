@@ -25,9 +25,15 @@ class Server:
             # ct = client_thread(clientsocket)
             # ct.run()
             msg = clientsocket.recv(1000)
+<<<<<<< HEAD
             #parts = msg.split()
-            # ProtoParser.parse()
+            parts = ProtoParser.parse(msg)
 
+=======
+            parts = msg.split()
+            # ProtoParser.parse()
+            print msg
+>>>>>>> f479f6b565913930784c0390069293ea9a219099
             if parts[0] == "set":
                 self.set(parts[1], parts[2])
                 clientsocket.send("Done")
