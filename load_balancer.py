@@ -2,9 +2,28 @@
 # Round Robin Returning of Servers
 # Should push updated servers list to servers
 # Extension Poll Servers for Fault Tolerance
-import multiprocessing
-import socket
+import socket,threading
 
+
+class ClientThread(threading.Thread):
+
+    def __init__(self, ip, port, socket):
+        threading.Thread.__init__(self)
+        self.ip = ip
+        self.port = port
+        self.socket = socket
+        print "[+] New thread started for "+ip+":"+str(port)
+
+    def run(self):
+        msg = clientsocket.recv(1000)
+        parts = msg.split()
+        print msg
+        if parts[0] == "set":
+            self.set(parts[1], parts[2])
+            clientsocket.send("Done")
+        else:
+            value = self.get(parts[1])
+            clientsocket.send(value)
 
 class LoadBalancer:
     def __init__(self, ip, port):
@@ -14,22 +33,23 @@ class LoadBalancer:
         self.ip = ip
         self.port = port
 
+
+    def send(self):
+        pass
+
+    def recv(self,client_socket):
+        pass
+
+
     def start(self):
         self.socket.bind((self.ip, self.port))
         self.socket.listen(5)
         while 1:
-            (clientsocket, address) = self.socket.accept()
+            (clientsock, (ip, port)) = self.socket.accept()
             # ct = client_thread(clientsocket)
             # ct.run()
-            msg = clientsocket.recv(1000)
-            parts = msg.split()
-            print msg
-            if parts[0] == "set":
-                self.set(parts[1], parts[2])
-                clientsocket.send("Done")
-            else:
-                value = self.get(parts[1])
-                clientsocket.send(value)
+            ct= ClientThread(ip, port, clientsock)
+            ct.run()
 
     def add_sever(self, ip, port):
         # STEP 1: Verify Server
