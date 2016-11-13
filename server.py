@@ -6,12 +6,11 @@ class Server:
         # create an INET, STREAMing socket
         self.socket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
-        self.ip = ip
-        self.port = port
+        self.address = address
         self.store = None  # KeyStore
 
     def start(self):
-        self.socket.bind((self.ip, self.port))
+        self.socket.bind(self.address)
         self.socket.listen(5)
         while 1:
             (clientsocket, address) = self.socket.accept()

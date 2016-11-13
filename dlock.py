@@ -61,10 +61,12 @@ class DlockServer:
 
 
 # Wrapper for the requests that will be made to server
+# Will need to implement timeout stuff
 class Dlock:
     def __init__(self, server_addr):
         self.addr = server_addr
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.settimeout(30)
 
     def acquire(self, key):
         d = {'op': 'acquire', 'key': key}
@@ -72,7 +74,6 @@ class Dlock:
         while True:
             self.socket.sendto(js, self.addr)
             res = self.socket.recv(1000)
-            print res
             if res == "Ok":
                 break
             time.sleep(1)

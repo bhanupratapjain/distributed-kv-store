@@ -6,7 +6,7 @@ class KeyStore:
         self.synchronizer = None
 
     # Setup File Handler and Synchronzier
-    def start(self,lb_address):
+    def start(self, lb_address):
         pass
 
     # Returns Value or None if not found
