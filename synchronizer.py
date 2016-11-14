@@ -37,7 +37,8 @@ class Synchronizer:
         if d['operation'] == 'log':
             self.__append_log(d, addr)
         elif d['operation'] == 'commit':
-            self.file_handler.set(d['key'], d['value'])
+            t = self.log_handler.get_recent()
+            self.file_handler.set(t['key'], t['value'])
 
     def __listen(self):
         while True:
@@ -58,9 +59,11 @@ class Synchronizer:
             if d['operation'] == 'set':
                 #self.file_handler.set(d['key'], d['value'])
                 self.log_handler.append(d['key'], d['value'])
+                #TODO: if append returns exception(during mismatch) call __sync_keystore
                 self.socket.sendto("Ok", addr)
         except Exception:
-            self.socket.sendto("Reject", addr)
+            print "append log failed %s"%addr
+            pass
 
     def __sync_keystore(self):
         pass
@@ -97,24 +100,12 @@ class Synchronizer:
         sock.close()
 
 
-    def commit_log(self, key, value):
+    def commit(self, key, value):
         d = {'operation': 'commit'}
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(30)
-        done = []
 
         for server in self.servers:
-            try:
-                sock.sendto(json.dumps(d), server)
-                msg, addr = sock.recvfrom(1000)
-                if msg == 'Ok':
-                    done.append(server)
-            except socket.timeout:
-                # TODO
-                # tell load balancer which server failed remove from this server list also
-                print "server %s failed during commit"%server
-        if len(done) < 1:
-            raise Exception("shutting down Fail commit")
+            sock.sendto(json.dumps(d), server)
         # We dont need this
         # d = {'operation': 'undo_log'}
         # for server in done:

@@ -31,3 +31,4 @@ class FileHandler:
                 self.data = json.load(f)
             except ValueError:
                 self.data = {}
+

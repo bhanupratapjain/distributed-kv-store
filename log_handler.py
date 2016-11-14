@@ -4,7 +4,7 @@ class LogHandler:
         self.log_index = 0
         self.log_commit_index = 0
 
-
+    #check mismatch and append
     def append(self,key,val):
         with open(self.log_location, "a") as myfile:
             myfile.write(key+val)
@@ -18,6 +18,11 @@ class LogHandler:
 
         return None
 
+    def __check_mismatch(self):
+        pass
+
+    def get_recent(self):
+        pass
 
     def get_logs(self, start_index,end_index):
         pass

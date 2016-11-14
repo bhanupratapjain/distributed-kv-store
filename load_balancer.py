@@ -1,4 +1,4 @@
-    # Accept Registrations
+# Accept Registrations
 # Round Robin Returning of Servers
 # Should push updated servers list to servers
 # Extension Poll Servers for Fault Tolerance
@@ -11,6 +11,7 @@ class ClientThread(threading.Thread):
         self.ip = ip
         self.port = port
         self.socket = socket
+
         print "[+] New thread started for %s:%s" % (ip, port)
 
     def run(self):
@@ -25,7 +26,8 @@ class LoadBalancer:
         self.servers = []
         self.ip = ip
         self.port = port
-
+        # socjet for registering servers
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     def send(self):
         pass
 
@@ -39,6 +41,12 @@ class LoadBalancer:
             (client_socket, (ip, port)) = self.socket.accept()
             ct = ClientThread(ip, port, client_socket)
             ct.run()
+
+    def heart_beat(self):
+        pass
+
+    def elect_leader(self):
+        pass
 
     def add_sever(self, ip, port):
         # STEP 1: Verify Server
