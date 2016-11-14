@@ -16,7 +16,7 @@ class LogHandler:
 
     #Not needed
     def get_log(self,index):
-        fp = open(self.log_location)
+        fp = open(self.log_location,'w+')
         for i, line in enumerate(fp):
             if int(line.split(" ")[0]) == index:
                 fp.close()
@@ -30,7 +30,7 @@ class LogHandler:
         return (self.log_commit_index != self.log_index)
 
     def get_recent(self):
-        with open(self.log_location) as f:
+        with open(self.log_location,'w+') as f:
             last = []
             for last in (line for line in f if line.rstrip('\n')):
                 pass
@@ -46,7 +46,7 @@ class LogHandler:
     def get_logs(self, start_index,end_index):
         lines = []
         print "index",start_index,end_index
-        fp = open(self.log_location)
+        fp = open(self.log_location,'w+')
         for i, line in enumerate(fp):
             t = line.split(" ")
             if int(t[0]) < start_index or int(t[0])>end_index:

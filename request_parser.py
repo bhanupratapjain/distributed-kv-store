@@ -5,5 +5,10 @@ class ProtoParser:
     # Returns tuple of (op, key, value)
     @staticmethod
     def parse(msg):
-        return msg.split(" ")
+        t = msg.split(" ")
+        if(t[0] == "get"):
+            return [t[0],t[1]]
+        else:
+            ret_val = [t[0],t[1],t[4]]
+            return ret_val
 

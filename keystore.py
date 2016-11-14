@@ -4,9 +4,9 @@ from synchronizer import Synchronizer
 # Sets to File and sync to other servers
 # Gets from File
 class KeyStore:
-    def __init__(self):
-        self.file_handler = FileHandler("keys.json")
-        self.log_handler = LogHandler("store.log")
+    def __init__(self,sport):
+        self.file_handler = FileHandler("keys_"+str(sport)+".json")
+        self.log_handler = LogHandler("store_"+str(sport)+".log")
         self.synchronizer = Synchronizer(self.file_handler, None,self.log_handler)
 
     # Setup File Handler and Synchronzier
