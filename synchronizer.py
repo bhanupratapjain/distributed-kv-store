@@ -7,22 +7,22 @@ import threading
 # Register with LB
 # Raise Exceptions
 class Synchronizer:
-    def __init__(self, client_address, file_handler, lb_address, log_handler):
+    def __init__(self, client_address, server_address, file_handler, lb_address,
+                 log_handler):
         self.lb_address = lb_address
+        self.server_address = server_address
         self.file_handler = file_handler
         self.log_handler = log_handler
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.servers = []
         self.leader = None
         self.client_address = client_address
-        self.server_address = None
 
     # Setup Networking
     # Register With LB
     # Sync KeyStore from other server
     # Sets up socket to listen to other servers and LB for updates
-    def start(self, server_address):
-        self.server_address = server_address
+    def start(self):
         self.__setup_socket()
         self.__register()
         self.__sync_keystore()
@@ -47,6 +47,7 @@ class Synchronizer:
             except socket.timeout:
                 retries += 1
                 if retries == 3:
+                    # Should Raise Exception
                     break
 
         sock.close()
@@ -81,6 +82,7 @@ class Synchronizer:
             else:
                 self.__parser_server(d, addr)
 
+    # TODO Update Leader
     def __parse_lb(self, msg):
         d = json.loads(msg)
         servers = []
@@ -95,9 +97,7 @@ class Synchronizer:
     def __append_log(self, d, addr):
         try:
             if d['operation'] == 'set':
-                # self.file_handler.set(d['key'], d['value'])
                 self.log_handler.append(d['key'], d['value'])
-                # TODO: if append returns exception(during mismatch) call __sync_keystore
                 self.socket.sendto("Ok", addr)
         except IOError:
             print "append log failed %s" % addr
@@ -107,6 +107,10 @@ class Synchronizer:
     def __sync_keystore(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(30)
+
+        # Fixing The Difference
+        self.log_handler.log_index = self.log_handler.commit_index
+
         d = {"operation": "sync",
              "last_index": self.log_handler.get_recent_index()}
         sock.sendto(json.dumps(d), self.leader)
@@ -116,7 +120,6 @@ class Synchronizer:
             msg, addr = sock.recvfrom(1000)
             js += msg
             try:
-
                 logs = json.loads(js)
                 break
             except ValueError:

@@ -1,16 +1,18 @@
 # Gets or Sets to the file should use locks and raise exceptions
 
 import json
+
+
 class FileHandler:
     def __init__(self, store_location):
-        # Preferably Read Write Lock (Only 1 Writer, but any number of readers)
+        # TODO Preferably Read Write Lock (Only 1 Writer, but any number of readers)
         self.lock = None
         # File Object for store
         self.store_file = store_location
         self.data = None
 
-
     # Searches File and Returns
+    # TODO Handle Key Error
     def get(self, key):
         self.update_data()
         return self.data[key]
@@ -31,4 +33,3 @@ class FileHandler:
                 self.data = json.load(f)
             except ValueError:
                 self.data = {}
-

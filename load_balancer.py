@@ -112,6 +112,7 @@ class LoadBalancer:
         # Create a heartbeat thread every 30 sec.
         threading.Timer(HEART_BEAT, self.__heart_beat).start()
 
+    # TODO Fix Timer by looping with wait
     def __heart_beat(self):
         if self.leader is None:
             self.__elect_leader()

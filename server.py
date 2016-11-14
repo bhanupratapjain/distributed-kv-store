@@ -1,42 +1,43 @@
 import socket
 import threading
-import time
+
 from keystore import KeyStore
-from random import randint
-from request_parser import ProtoParser
+import request_parser
 
 class Server:
-    def __init__(self, sip, sport, lbip, lbport):
+    def __init__(self, cip, cport, sip, sport, lbip, lbport):
         # create an INET, STREAMing socket
         self.socket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
-        self.ip = sip
-        self.port = sport
+        self.sip = sip
+        self.sport = sport
+        self.cip = cip
+        self.cport = cport
         self.lb_ip = lbip
         self.lb_port = lbport
-        # self.store = dict()  # KeyStore
-        self.store = KeyStore(sport)  # KeyStore
-
-    # def register(self):
-        # self.
+        self.store = KeyStore((self.lb_ip, self.lb_port),
+                              (self.cip, self.cport),
+                              (self.sip, sport))  # KeyStore
 
     def start(self):
-        self.socket.bind((self.ip, self.port))
+        self.store.start()
+        self.socket.bind((self.sip, self.sport))
         self.socket.listen(5)
         while 1:
             (clientsocket, address) = self.socket.accept()
-            # ct = client_thread(clientsocket)
-            # ct.run()
             msg = clientsocket.recv(1000)
-            parts = msg.split()
-            # ProtoParser.parse()
+            parts = request_parser.ProtoParser.parse(msg)
+            t = threading.Thread(target=self.__process,
+                                 args=(clientsocket, parts))
+            t.start()
 
-            if parts[0] == "set":
-                self.set(parts[1], parts[2])
-                clientsocket.send("Done")
-            elif parts[0] == "get":
-                value = self.get(parts[1])
-                clientsocket.send(value)
+    def __process(self, clientsocket, parts):
+        if parts[0] == "set":
+            self.set(parts[1], parts[2])
+            clientsocket.send("STORED\r\n")
+        elif parts[0] == "get":
+            value = self.get(parts[1])
+            clientsocket.send(value)
 
     def stop(self):
         pass
@@ -48,42 +49,10 @@ class Server:
     # Same
     def set(self, key, value):
         self.store.set(key, value)
-class Test:
-    def __init__(self,server):
-        self.server = server
-
-    def start(self):
-        t_set1 = threading.Thread(target=set.set_values)
-        t_get1 = threading.Thread(target=set.get_values)
-        t_set2 = threading.Thread(target=set.set_values)
-        t_get2 = threading.Thread(target=set.get_values)
-        t_set3 = threading.Thread(target=set.set_values)
-        t_get3 = threading.Thread(target=set.get_values)
-        t_set1.join()
-        t_get1.join()
-        t_set2.join()
-        t_get2.join()
-        t_set3.join()
-        t_get3.join()
-
-    def set_values(self):
-        index = 0
-        while(index < 10000):
-            self.server.set(str(randint(0, 5000)), str(randint(0, 5000)))
-            index = index + 1
-            time.sleep(0.05)
-
-
-    def get_values(self):
-        index = 0
-        while (index < 10000):
-            self.server.get(str(randint(0, 5000)), str(randint(0, 5000)))
-            index = index + 1
-            time.sleep(0.05)
 
 
 if __name__ == "__main__":
-    server = Server("127.0.0.1", 5003, "127.0.0.1",6003)
+    server = Server("127.0.0.1", 5003, "127.0.0.1", 6003)
     server.start()
-    #t =  Test(server)
-    #t.start()
+    # t =  Test(server)
+    # t.start()
