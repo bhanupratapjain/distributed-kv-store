@@ -1,5 +1,8 @@
 import socket
+import threading
+import time
 from keystore import KeyStore
+from random import randint
 from request_parser import ProtoParser
 
 class Server:
@@ -45,8 +48,42 @@ class Server:
     # Same
     def set(self, key, value):
         self.store.set(key, value)
+class Test:
+    def __init__(self,server):
+        self.server = server
+
+    def start(self):
+        t_set1 = threading.Thread(target=set.set_values)
+        t_get1 = threading.Thread(target=set.get_values)
+        t_set2 = threading.Thread(target=set.set_values)
+        t_get2 = threading.Thread(target=set.get_values)
+        t_set3 = threading.Thread(target=set.set_values)
+        t_get3 = threading.Thread(target=set.get_values)
+        t_set1.join()
+        t_get1.join()
+        t_set2.join()
+        t_get2.join()
+        t_set3.join()
+        t_get3.join()
+
+    def set_values(self):
+        index = 0
+        while(index < 10000):
+            self.server.set(str(randint(0, 5000)), str(randint(0, 5000)))
+            index = index + 1
+            time.sleep(0.05)
+
+
+    def get_values(self):
+        index = 0
+        while (index < 10000):
+            self.server.get(str(randint(0, 5000)), str(randint(0, 5000)))
+            index = index + 1
+            time.sleep(0.05)
 
 
 if __name__ == "__main__":
     server = Server("127.0.0.1", 5001, "127.0.0.1")
     server.start()
+    #t =  Test(server)
+    #t.start()
