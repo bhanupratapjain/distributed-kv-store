@@ -25,7 +25,7 @@ class Server:
             # ct = client_thread(clientsocket)
             # ct.run()
             msg = clientsocket.recv(1000)
-            #parts = msg.split()
+            parts = msg.split()
             # ProtoParser.parse()
 
             if parts[0] == "set":
