@@ -15,7 +15,7 @@ class Server:
         self.lb_ip = lbip
         self.lb_port = lbport
         # self.store = dict()  # KeyStore
-        self.store = KeyStore()  # KeyStore
+        self.store = KeyStore(sport)  # KeyStore
 
     # def register(self):
         # self.
@@ -83,7 +83,7 @@ class Test:
 
 
 if __name__ == "__main__":
-    server = Server("127.0.0.1", 5001, "127.0.0.1")
+    server = Server("127.0.0.1", 5003, "127.0.0.1",6003)
     server.start()
     #t =  Test(server)
     #t.start()
