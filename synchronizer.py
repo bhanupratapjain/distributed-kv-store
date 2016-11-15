@@ -25,7 +25,8 @@ class Synchronizer:
     def start(self):
         self.__setup_socket()
         self.__register()
-        self.__sync_keystore()
+        if self.leader != self.client_address:
+            self.__sync_keystore()
         t = threading.Thread(target=self.__listen)
         t.start()
 
@@ -41,9 +42,11 @@ class Synchronizer:
         while True:
             try:
                 sock.sendto(json.dumps(d), self.lb_address)
+                print sock.getsockname()
                 msg, addr = sock.recvfrom(1000)
                 d = json.loads(msg)
                 self.leader = (d['leader_ip'], d['leader_port'])
+                break
             except socket.timeout:
                 retries += 1
                 if retries == 3:
@@ -51,6 +54,8 @@ class Synchronizer:
                     break
 
         sock.close()
+
+        print self.leader
 
     def __setup_socket(self):
         self.socket.bind(self.server_address)
@@ -84,6 +89,7 @@ class Synchronizer:
 
     # TODO Update Leader
     def __parse_lb(self, msg):
+        print "Got Load Balancer"
         d = json.loads(msg)
         servers = []
         for server in d['servers']:
@@ -91,7 +97,7 @@ class Synchronizer:
             port = server['port']
             servers.append((ip, port))
         self.servers = servers
-        self.socket.sendto("Ok", self.lb_address)
+        self.socket.sendto("ok", self.lb_address)
         # self.leader = (d['leader']['ip'], d['leader']['port'])
 
     def __append_log(self, d, addr):
@@ -109,7 +115,7 @@ class Synchronizer:
         sock.settimeout(30)
 
         # Fixing The Difference
-        self.log_handler.log_index = self.log_handler.commit_index
+        self.log_handler.log_index = self.log_handler.log_commit_index
 
         d = {"operation": "sync",
              "last_index": self.log_handler.get_recent_index()}
@@ -119,6 +125,7 @@ class Synchronizer:
         while True:
             msg, addr = sock.recvfrom(1000)
             js += msg
+            print js
             try:
                 logs = json.loads(js)
                 break

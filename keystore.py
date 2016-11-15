@@ -38,4 +38,4 @@ class KeyStore:
         self.file_handler.set(key, value)
 
         # Commits on all servers
-        self.synchronizer.commit(key,value)
+        self.synchronizer.commit(key, value)
