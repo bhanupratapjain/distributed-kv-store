@@ -53,7 +53,7 @@ class FileHandler:
             move(new_file, self.store_file)
             if not key_found and value is not None:
                 with open(self.store_file, "a") as myfile:
-                    myfile.write(key + " " + value + "\n")
+                    myfile.write(key + " " + value + "\n") 
 
 
 """
