@@ -8,7 +8,7 @@ from synchronizer import Synchronizer
 class KeyStore:
     def __init__(self, lb_address, client_address, server_address):
         self.file_handler = FileHandler(
-            "keys_" + str(server_address[1]) + ".json")
+            "keys_" + str(server_address[1]) + ".txt")
         self.log_handler = LogHandler(
             "store_" + str(server_address[1]) + ".log")
         self.synchronizer = Synchronizer(client_address, server_address,
