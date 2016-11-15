@@ -3,8 +3,10 @@
 class LogHandler:
     def __init__(self, log_location):
         self.log_location = log_location
-        self.log_index = self.get_recent_index()
-        self.log_commit_index = self.get_recent_index()
+        # self.log_index = self.get_recent_index()
+        # self.log_commit_index = self.get_recent_index()
+        self.log_index = 0
+        self.log_commit_index = 0
 
     # check mismatch and append
     def append(self, key, val):

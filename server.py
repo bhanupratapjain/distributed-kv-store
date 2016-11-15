@@ -1,8 +1,11 @@
 import socket
 import threading
 
-from keystore import KeyStore
+import time
+
 import request_parser
+from keystore import KeyStore
+
 
 class Server:
     def __init__(self, cip, cport, sip, sport, lbip, lbport):
@@ -52,7 +55,7 @@ class Server:
 
 
 if __name__ == "__main__":
-    server = Server("127.0.0.1", 5003, "127.0.0.1", 6003)
+    server = Server("127.0.0.1", 5000, "127.0.0.1", 5001, "127.0.0.1", 4501)
     server.start()
     # t =  Test(server)
     # t.start()
