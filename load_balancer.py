@@ -46,7 +46,6 @@ class ServerThread(threading.Thread):
     def __get_leader_addr(self):
         return self.leader['server_ip'], self.leader['server_port']
 
-    # TODO Wont Work for initial setup
     def __register_server(self, client_ip, client_port, server_ip, server_port):
         # STEP 1: Add the server to the server list.
         if self.leader is not None:
@@ -60,7 +59,7 @@ class ServerThread(threading.Thread):
         else:
             self.leader = {"client_ip": client_ip, "client_port": client_port,
                            "server_ip": server_ip, "server_port": server_port,
-                           "leader": False}
+                           "leader": True}
         # STEP 2: Send leader info back to the server.
         leader_addr = self.__get_leader_addr()
         data = {"operation": "register_callback",
@@ -123,13 +122,10 @@ class ServerThread(threading.Thread):
             # Create a heartbeat thread every 30 sec.
             threading.Thread(target=self.__heart_beat).start()
 
-        # TODO Fix Timer by looping with wait
         def __heart_beat(self):
             while True:
-
                 if self.leader is None:
                     continue
-
                 local_followers = []
                 for follower in self.followers:
                     local_followers.append({
@@ -150,7 +146,6 @@ class ServerThread(threading.Thread):
                 except socket.timeout:
                     self.__elect_leader()
                 sock.close()
-
                 time.sleep(HEART_BEAT)
 
         def __elect_leader(self):
