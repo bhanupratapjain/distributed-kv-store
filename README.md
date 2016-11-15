@@ -6,7 +6,7 @@ Distributed Key Value Store
 - create a virtual env with `Python 2.7`
 - go to the project root 
 - run `pip install --editable .`
-
+- pip install portalocker # locks across multiple platforms
 ## Monitor Utilities
 - `sudo apt-get install htop` - to monitor the process. 
 - `ss -l -p -n | grep ",<PID>,"` - to monitor open ports of a process.
