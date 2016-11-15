@@ -1,5 +1,6 @@
 *.log
 *.json
+*.xml
 # Created by https://www.gitignore.io/api/pycharm,macos,osx,windows,python
 
 ### PyCharm ###
