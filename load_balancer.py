@@ -7,46 +7,53 @@ import socket
 import threading
 import time
 from random import randint
+from request_parser import ProtoParser
 
-HEART_BEAT = 30
-
-
-class ClientThread(threading.Thread):
-    def __init__(self, ip, port, socket, leader):
-        threading.Thread.__init__(self)
-        self.ip = ip
-        self.port = port
-        self.socket = socket
-        self.leader = leader
-        print "[+] New thread started for %s:%s" % (ip, port)
-
-    def __parse(self, msg):
-        pass
-
-    def run(self):
-        msg = self.socket.recv(1000)
-        print msg
-        if self.__parse(msg) == "get-servers":
-            resp = self.leader['client_ip'] + ":" + self.leader[
-                "client_port"] + "\r\nend\r\n"
-            self.socket.sendall(resp)
+HEART_BEAT = 1
 
 
-class ServerThread(threading.Thread):
-    def __init__(self, ip, port, socket, msg, followers, leader):
-        threading.Thread.__init__(self)
-        self.ip = ip
-        self.port = port
-        self.msg = msg
-        self.leader = leader
-        self.followers = followers
-        self.socket = socket
-        print "[+] New thread started for %s:%s" % (ip, port)
+class LoadBalancer:
+    def __init__(self, cip, cport, sip, sport):
+        self.followers = []
+        self.lock = threading.Lock()
+        self.leader = None
+        self.cip = cip
+        self.cport = cport
+        self.sip = sip
+        self.sport = sport
+        self.server_socket = socket.socket(socket.AF_INET,
+                                           socket.SOCK_DGRAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def __setup_client_socket(self):
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind((self.cip, self.cport))
+
+    def __setup_server_socket(self):
+        self.server_socket.bind((self.sip, self.sport))
+
+    def __listen_server(self):
+        while True:
+            (msg, (ip, port)) = self.server_socket.recvfrom(1000)
+            threading.Thread(target=self.__process_server_request, args=(json.loads(msg), (ip, port))).start()
+
+    def __listen_client(self):
+        self.socket.listen(50)
+        while True:
+            (rec_socket, (ip, port)) = self.socket.accept()
+            threading.Thread(target=self.__process_client_request, args=(ip, port, rec_socket,)).start()
+
+    def __process_client_request(self, cip, cport, client_sock):
+        msg = client_sock.recv(1000)
+        parsed_msg = ProtoParser.parse(msg)
+        if parsed_msg[0] == "get-servers":
+            resp = self.leader['client_ip'] + ":" + str(self.leader["client_port"]) + "\r\nend\r\n"
+            client_sock.sendall(resp)
 
     def __get_leader_addr(self):
         return self.leader['server_ip'], self.leader['server_port']
 
-    def __register_server(self, client_ip, client_port, server_ip, server_port):
+    def __register_server(self, client_ip, client_port, server_ip, server_port, ret_ip, ret_port):
         # STEP 1: Add the server to the server list.
         if self.leader is not None:
             self.followers.append({
@@ -64,112 +71,86 @@ class ServerThread(threading.Thread):
         leader_addr = self.__get_leader_addr()
         data = {"operation": "register_callback",
                 "leader_ip": leader_addr[0], "leader_port": leader_addr[1]}
-        self.socket.sendto(json.dumps(data), (self.ip, self.port))
+        self.server_socket.sendto(json.dumps(data), (ret_ip, ret_port))
 
-        print self.leader, self.followers, (self.ip, self.port)
-
-    def __process_server_request(self, msg):
+    def __process_server_request(self, msg, rec_sock_addr):
         if 'operation' in msg and msg['operation'] == 'register':
+            # print "Got server registration req"
+            # print msg
             client_ip = msg['client_ip']
             client_port = msg['client_port']
             server_ip = msg['server_ip']
             server_port = msg['server_port']
-            self.__register_server(client_ip, client_port, server_ip,
-                                   server_port)
+            with self.lock:
+                self.__register_server(client_ip, client_port, server_ip, server_port, rec_sock_addr[0],
+                                       rec_sock_addr[1])
 
-    def run(self):
-        self.__process_server_request(json.loads(self.msg))
+    def start(self):
+        self.__setup_client_socket()
+        self.__setup_server_socket()
+        client_socket_thread = threading.Thread(target=self.__listen_client)
+        server_socket_thread = threading.Thread(target=self.__listen_server)
+        client_socket_thread.start()
+        server_socket_thread.start()
+        # Create a heartbeat thread every 30 sec.
+        threading.Thread(target=self.__heart_beat).start()
 
-    class LoadBalancer:
-        def __init__(self, cip, cport, sip, sport):
-            self.followers = []
-            self.leader = None
-            self.cip = cip
-            self.cport = cport
-            self.sip = sip
-            self.sport = sport
-            self.server_socket = socket.socket(socket.AF_INET,
-                                               socket.SOCK_DGRAM)
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        def __setup_client_socket(self):
-            self.socket.bind((self.cip, self.cport))
-
-        def __setup_server_socket(self):
-            self.server_socket.bind((self.sip, self.sport))
-
-        def __listen_server(self):
-            while 1:
-                (msg, (ip, port)) = self.server_socket.recvfrom(1000)
-                th = ServerThread(ip, port, self.server_socket, msg,
-                                  self.followers, self.leader)
-                th.run()
-
-        def __listen_client(self):
-            self.socket.listen(50)
-            while 1:
-                (rec_socket, (ip, port)) = self.socket.accept()
-                th = ClientThread(ip, port, rec_socket, self.leader)
-                th.run()
-
-        def start(self):
-            self.__setup_client_socket()
-            self.__setup_server_socket()
-            client_socket_thread = threading.Thread(target=self.__listen_client)
-            server_socket_thread = threading.Thread(target=self.__listen_server)
-            client_socket_thread.start()
-            server_socket_thread.start()
-            # Create a heartbeat thread every 30 sec.
-            threading.Thread(target=self.__heart_beat).start()
-
-        def __heart_beat(self):
-            while True:
-                if self.leader is None:
-                    continue
-                local_followers = []
-                for follower in self.followers:
-                    local_followers.append({
-                        "ip": follower["server_ip"],
-                        "port": follower["server_port"]
-                    })
-
-                # Check for leader heartbeat and update server list.
-                data = {"operation": "heartbeat", "servers": local_followers}
-                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                sock.settimeout(30)
-                try:
-                    sock.sendto(json.dumps(data), (
-                        self.leader['server_ip'], self.leader['server_port']))
-                    msg, addr = sock.recvfrom(1000)
-                    if msg == 'ok':
-                        pass
-                except socket.timeout:
-                    self.__elect_leader()
-                sock.close()
+    def __heart_beat(self):
+        while True:
+            # print "\n#########lb HB, leader is"
+            if self.leader is None:
+                self.__elect_leader()
                 time.sleep(HEART_BEAT)
+                continue
 
-        def __elect_leader(self):
-            current_followers = []
-            data = {"operation": "heartbeat", "servers": []}
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            local_followers = []
             for follower in self.followers:
-                sock.sendto(json.dumps(data),
-                            (follower['server_ip'], follower['server_port']))
-                msg, addr = sock.recvfrom(1000)
-                if msg == "ok":
-                    current_followers.append(follower)
+                local_followers.append({
+                    "ip": follower["server_ip"],
+                    "port": follower["server_port"]
+                })
 
+            # Check for leader heartbeat and update server list.
+            data = {"operation": "heartbeat", "servers": local_followers}
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(5)
+            try:
+                sock.sendto(json.dumps(data), (
+                    self.leader['server_ip'], self.leader['server_port']))
+                msg, addr = sock.recvfrom(1000)
+                if msg == 'ok':
+                    print "alive"
+                    time.sleep(HEART_BEAT)
+            except socket.timeout:
+                print "dead"
+                self.__elect_leader()
+            sock.close()
+
+    def __elect_leader(self):
+        if len(self.followers) < 1:
+            return
+        current_followers = []
+        data = {"operation": "heartbeat", "servers": []}
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        for follower in self.followers:
+            sock.sendto(json.dumps(data),
+                        (follower['server_ip'], follower['server_port']))
+            msg, addr = sock.recvfrom(1000)
+            if msg == "ok":
+                current_followers.append(follower)
+        with self.lock:
             self.followers = current_followers
             self.leader = self.followers.pop(randint(0, len(self.followers)))
 
-        def get_server_info(self, ip, port):
-            # STEP 1: Get server info from the requested server.
-            pass
+    def get_server_info(self, ip, port):
+        # STEP 1: Get server info from the requested server.
+        pass
 
-        def get_servers(self):
-            # STEP 1: Return the server with least no. of active connections.
-            pass
+    def get_servers(self):
+        # STEP 1: Return the server with least no. of active connections.
+        pass
 
-    if __name__ == "__main__":
-        lb = LoadBalancer('127.0.0.1', 4500, "127.0.0.1", 4501)
-        lb.start()
+
+if __name__ == "__main__":
+    lb = LoadBalancer('127.0.0.1', 4500, "127.0.0.1", 4501)
+    lb.start()
