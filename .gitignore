@@ -1,6 +1,7 @@
 *.log
 *.json
 *.xml
+_windows/
 # Created by https://www.gitignore.io/api/pycharm,macos,osx,windows,python
 
 ### PyCharm ###
@@ -146,7 +147,7 @@ var/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit tests / coverage reports
 htmlcov/
 .tox/
 .coverage
@@ -201,3 +202,4 @@ ENV/
 # Rope project settings
 .ropeproject
 .idea
+keys_*.txt

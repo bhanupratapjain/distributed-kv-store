@@ -16,15 +16,16 @@ class Server:
         self.sport = sport
         self.cip = cip
         self.cport = cport
-        self.lb_ip = lbip
-        self.lb_port = lbport
-        self.store = KeyStore((self.lb_ip, self.lb_port),
+        self.lbip = lbip
+        self.lbport = lbport
+        self.store = KeyStore((self.lbip, self.lbport),
                               (self.cip, self.cport),
                               (self.sip, sport))  # KeyStore
 
     def start(self):
-        self.store.start()
-        self.socket.bind((self.sip, self.sport))
+        threading.Thread(target=self.store.start).start()
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind((self.cip, self.cport))
         self.socket.listen(5)
         while 1:
             (clientsocket, address) = self.socket.accept()
@@ -40,7 +41,8 @@ class Server:
             clientsocket.send("STORED\r\n")
         elif parts[0] == "get":
             value = self.get(parts[1])
-            clientsocket.send(value)
+            res = "VALUE "+parts[1]+" 0 "+str(value)+"\r\n"
+            clientsocket.send(res)
 
     def stop(self):
         pass

@@ -23,6 +23,7 @@ def addsrv(sip, sport, lbip, lbport):
         current_process = multiprocessing.current_process()
         p = multiprocessing.Process(target=add_new_server, args=(sip, sport, lbip, lbport, current_process.pid),
                                     name='server')
+        p.daemon = True
         p.start()
 
 
@@ -36,6 +37,7 @@ def addlb(ip, port):
         click.echo("Adding Load Balancer at [%s:%s]" % (ip, port))
         current_process = multiprocessing.current_process()
         p = multiprocessing.Process(target=add_new_lb, args=(ip, port, current_process.pid), name='load-balancer')
+        p.daemon = True
         p.start()
 
 

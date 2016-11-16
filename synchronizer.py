@@ -25,7 +25,7 @@ class Synchronizer:
     def start(self):
         self.__setup_socket()
         self.__register()
-        if self.leader != self.client_address:
+        if self.leader != self.server_address:
             self.__sync_keystore()
         t = threading.Thread(target=self.__listen)
         t.start()
@@ -35,14 +35,13 @@ class Synchronizer:
              "server_port": self.server_address[1],
              "client_ip": self.client_address[0],
              "client_port": self.client_address[1]}
-
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(30)
         retries = 0
         while True:
             try:
                 sock.sendto(json.dumps(d), self.lb_address)
-                print sock.getsockname()
+                # print sock.getsockname()
                 msg, addr = sock.recvfrom(1000)
                 d = json.loads(msg)
                 self.leader = (d['leader_ip'], d['leader_port'])
@@ -55,7 +54,7 @@ class Synchronizer:
 
         sock.close()
 
-        print self.leader
+        # print self.leader
 
     def __setup_socket(self):
         self.socket.bind(self.server_address)
@@ -65,7 +64,7 @@ class Synchronizer:
             self.__append_log(d, addr)
         elif d['operation'] == 'commit':
             t = self.log_handler.get_recent()
-            self.file_handler.set(t['key'], t['value'])
+            self.file_handler.set(t[1], t[2])
             self.log_handler.increase_commit_index()
         elif d['operation'] == 'sync':
             last_index = int(d['last_index'])
@@ -77,34 +76,30 @@ class Synchronizer:
                 ds.append(d)
             self.socket.sendto(json.dumps(ds), addr)
 
+        elif d['operation'] == 'heartbeat':
+            self.__parse_lb(d, addr)
+
     def __listen(self):
         while True:
             msg, addr = self.socket.recvfrom(1000)
             d = json.loads(msg)
+            self.__parser_server(d, addr)
 
-            if addr == self.lb_address:
-                self.__parse_lb(msg)
-            else:
-                self.__parser_server(d, addr)
-
-    # TODO Update Leader
-    def __parse_lb(self, msg):
-        print "Got Load Balancer"
-        d = json.loads(msg)
+    # HeartBeat Operation
+    def __parse_lb(self, d, addr):
         servers = []
         for server in d['servers']:
             ip = server['ip']
             port = server['port']
             servers.append((ip, port))
         self.servers = servers
-        self.socket.sendto("ok", self.lb_address)
+        self.socket.sendto("ok", addr)
         # self.leader = (d['leader']['ip'], d['leader']['port'])
 
     def __append_log(self, d, addr):
         try:
-            if d['operation'] == 'set':
-                self.log_handler.append(d['key'], d['value'])
-                self.socket.sendto("Ok", addr)
+            self.log_handler.append(d['key'], d['value'])
+            self.socket.sendto("Ok", addr)
         except IOError:
             print "append log failed %s" % addr
         except Exception:
@@ -125,7 +120,7 @@ class Synchronizer:
         while True:
             msg, addr = sock.recvfrom(1000)
             js += msg
-            print js
+            # print js
             try:
                 logs = json.loads(js)
                 break
@@ -146,9 +141,8 @@ class Synchronizer:
     def sync_log(self, key, value):
         d = {'operation': 'log', 'key': key, 'value': value}
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(30)
+        sock.settimeout(5)
         done = []
-
         for server in self.servers:
             try:
                 sock.sendto(json.dumps(d), server)
@@ -156,10 +150,10 @@ class Synchronizer:
                 if msg == 'Ok':
                     done.append(server)
             except socket.timeout:
-                print "server %s failed during  sync" % server
+                print "server %s failed during  sync" % str(server)
                 msg = {'operation': 'remove', 'ip': server[0],
                        'port': server[1]}
-                sock.sendto(json.dumps(msg), self.lb_address)
+                # sock.sendto(json.dumps(msg), self.lb_address)
 
         if len(done) < 1:
             raise Exception("shutting down fail log")
