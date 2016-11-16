@@ -36,7 +36,7 @@ class Synchronizer:
              "client_ip": self.client_address[0],
              "client_port": self.client_address[1]}
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(constants.SOCKET_TIMEOUT_30)
+        sock.settimeout(constants.SOCKET_TIMEOUT)
         retries = 0
         while True:
             try:
@@ -107,7 +107,7 @@ class Synchronizer:
 
     def __sync_keystore(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(constants.SOCKET_TIMEOUT_30)
+        sock.settimeout(constants.SOCKET_TIMEOUT)
 
         # Fixing The Difference
         self.log_handler.log_index = self.log_handler.log_commit_index
@@ -173,5 +173,5 @@ class Synchronizer:
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(constants.SOCKET_TIMEOUT_30)
+    sock.settimeout(constants.SOCKET_TIMEOUT)
     sock.recvfrom(constants.BUFFER_SIZE)

@@ -7,11 +7,11 @@ import socket
 import threading
 import time
 from random import randint
+from constants import HEART_BEAT
 import constants
-
 from request_parser import ProtoParser
 
-HEART_BEAT = 1
+
 
 
 class LoadBalancer:
@@ -140,7 +140,7 @@ class LoadBalancer:
                     self.leader['server_ip'], self.leader['server_port']))
                 msg, addr = sock.recvfrom(constants.BUFFER_SIZE)
                 if msg == 'ok':
-                    print "alive", self.leader['server_port'], self.followers
+                    print "alive" #self.leader['server_port'], self.followers
                     time.sleep(HEART_BEAT)
             except socket.timeout:
                 print "dead"

@@ -13,14 +13,33 @@ Distributed Key Value Store
 
 
 ## TO DO
-- Save to Files
-- Implement Memcached
-- Implement Master
-- Multi Thread Server
-- Exception Handling in Server and Client
-- Server - Server Communication
+- Multiple gets or sets in 1 request
+
+
 
 ## Design Strategy
+
+## Assumptions
+
+## Partition Tolerance
+
+## Algorithm Used (RAFT)
+
+## Logs
+## Keystore File
+
+## Load Balancer
+
+## Servers (Leaders and Followers)
+
+## Client (API)
+    set
+    get
+    get-servers
+
+
+## Performance Improvement
+
 
 
 ## Team

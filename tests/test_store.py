@@ -74,10 +74,10 @@ class StoreTest:
         server_addr = ProtoParser.parse_srv_addr(
             client.get_server(lbip, lbport))
         print "server ", server_addr
-        for i in xrange(1, 5):
+        for i in xrange(0, 500):
             print "round [{}] for client [{}]".format(i, cport)
-            key = str(randint(0, 5))
-            client.set(str(randint(0, 5)), str(randint(0, 5)), server_addr[0],
+            key = str(randint(0, 1000))
+            client.set(str(randint(0, 1000)), str(randint(0, 1000)), server_addr[0],
                        int(server_addr[1]))
             print "get result, ", key, client.get(key, server_addr[0],
                                                   int(server_addr[1]))
@@ -222,12 +222,12 @@ class StoreTest:
                 name='client')
             client_p.start()
             self.clients.append(client_p)
-            if i == 3:
-                self.servers.pop(4).terminate()
-                print "Killed Server"
-                time.sleep(10)
-                print "Continue Creating Clients"
-                threading.Timer(5, self.__add_new_test_server, args=(4,)).start()
+            # if i == 3:
+            #     self.servers.pop(4).terminate()
+            #     print "Killed Server"
+            #     time.sleep(10)
+            #     print "Continue Creating Clients"
+            #     threading.Timer(5, self.__add_new_test_server, args=(4,)).start()
 
             time.sleep(2)
 
@@ -248,6 +248,11 @@ if __name__ == "__main__":
         (('127.0.0.1', 6005), ('127.0.0.1', 6006), lb[1]),
         (('127.0.0.1', 6007), ('127.0.0.1', 6008), lb[1]),
         (('127.0.0.1', 6009), ('127.0.0.1', 6010), lb[1]),
+        (('127.0.0.1', 6011), ('127.0.0.1', 6012), lb[1]),
+        (('127.0.0.1', 6013), ('127.0.0.1', 6014), lb[1]),
+        (('127.0.0.1', 6015), ('127.0.0.1', 6016), lb[1]),
+        (('127.0.0.1', 6017), ('127.0.0.1', 6018), lb[1]),
+        (('127.0.0.1', 6019), ('127.0.0.1', 6020), lb[1]),
     ]
     clients = [
         ('127.0.0.1', 7001),
@@ -255,6 +260,11 @@ if __name__ == "__main__":
         ('127.0.0.1', 7003),
         ('127.0.0.1', 7004),
         ('127.0.0.1', 7005),
+        ('127.0.0.1', 7006),
+        ('127.0.0.1', 7007),
+        ('127.0.0.1', 7008),
+        ('127.0.0.1', 7009),
+        ('127.0.0.1', 7010),
     ]
     st.test_case_3(lb, servers, clients)
     # st.test_case_2(lb, servers, clients)
