@@ -224,7 +224,9 @@ class StoreTest:
             self.clients.append(client_p)
             if i == 3:
                 self.servers.pop(4).terminate()
+                print "Killed Server"
                 time.sleep(10)
+                print "Continue Creating Clients"
                 threading.Timer(5, self.__add_new_test_server, args=(4,)).start()
 
             time.sleep(2)

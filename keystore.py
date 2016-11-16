@@ -34,7 +34,7 @@ class KeyStore:
     def set(self, key, value):
         with self.lock:
             # Appends Log
-            print "Acquired Lock By Thread", self.server_address
+            # print "Acquired Lock By Thread", self.server_address
             self.log_handler.append(key, value)
 
             # Syncs Log across servers
@@ -49,4 +49,4 @@ class KeyStore:
             # Commits on all servers
             self.synchronizer.commit(key, value)
 
-        print "Released Lock By Thread", self.server_address
+        # print "Released Lock By Thread", self.server_address

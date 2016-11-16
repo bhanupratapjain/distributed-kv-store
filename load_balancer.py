@@ -92,6 +92,17 @@ class LoadBalancer:
                 self.__register_server(client_ip, client_port, server_ip,
                                        server_port, rec_sock_addr[0],
                                        rec_sock_addr[1])
+        elif msg['operation'] == 'remove':
+            server_ip = msg['server_ip']
+            server_port = msg['server_port']
+            index = 0
+            for i, follower in enumerate(self.followers):
+                if follower['server_ip'] == server_ip and follower[
+                    'server_port'] == server_port:
+                    index = i
+                    break
+
+            self.followers.pop(index)
 
     def start(self):
         self.__setup_client_socket()
@@ -129,7 +140,7 @@ class LoadBalancer:
                     self.leader['server_ip'], self.leader['server_port']))
                 msg, addr = sock.recvfrom(constants.BUFFER_SIZE)
                 if msg == 'ok':
-                    print "alive", self.leader['server_port']
+                    print "alive", self.leader['server_port'], self.followers
                     time.sleep(HEART_BEAT)
             except socket.timeout:
                 print "dead"
