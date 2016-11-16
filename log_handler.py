@@ -18,9 +18,9 @@ class LogHandler:
 
     # check mismatch and append
     def append(self, key, val):
-        if self.__check_mismatch():
-            raise Exception('there is an index mismatch!')
         with self.lock:
+            if self.__check_mismatch():
+                raise Exception('there is an index mismatch!')
             index = self.log_index + 1
             with open(self.log_location, "a") as myfile:
                 myfile.write(str(index) + " " + key + " " + val + "\n")

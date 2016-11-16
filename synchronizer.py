@@ -141,7 +141,7 @@ class Synchronizer:
     def sync_log(self, key, value):
         d = {'operation': 'log', 'key': key, 'value': value}
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(30)
+        sock.settimeout(5)
         done = []
         for server in self.servers:
             try:
@@ -150,10 +150,10 @@ class Synchronizer:
                 if msg == 'Ok':
                     done.append(server)
             except socket.timeout:
-                print "server %s failed during  sync" % server
+                print "server %s failed during  sync" % str(server)
                 msg = {'operation': 'remove', 'ip': server[0],
                        'port': server[1]}
-                sock.sendto(json.dumps(msg), self.lb_address)
+                # sock.sendto(json.dumps(msg), self.lb_address)
 
         if len(done) < 1:
             raise Exception("shutting down fail log")

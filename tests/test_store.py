@@ -1,11 +1,12 @@
+import multiprocessing
+import threading
 import time
 from random import randint
 
 from client import Client
 from load_balancer import LoadBalancer
-from server import Server
-import multiprocessing
 from request_parser import ProtoParser
+from server import Server
 
 
 class StoreTest:
@@ -33,21 +34,21 @@ class StoreTest:
         # print "-------------------------------------"
         lb.start()
         # while 1:
-            # print "\n\n================Load Balancer Stats [{}]================".format(p.pid)
-            # print " CIP:{}, CPort:{}".format(lb.cip, lb.cport)
-            # print " SIP:{}, SPort:{}".format(lb.sip, lb.sport)
-            # print "\n---------------Leader-------------------"
-            # if lb.leader is not None:
-            #     self.__print_server(lb.leader)
-            # else:
-            #     print "No Leader Elected"
-            # print "\n---------------Followers--------------"
-            # if len(lb.followers) < 1:
-            #     print "No Followers"
-            # else:
-            #     self.__print_servers(lb.followers)
-            # print "\n================================================================\n\n"
-            # time.sleep(5)
+        # print "\n\n================Load Balancer Stats [{}]================".format(p.pid)
+        # print " CIP:{}, CPort:{}".format(lb.cip, lb.cport)
+        # print " SIP:{}, SPort:{}".format(lb.sip, lb.sport)
+        # print "\n---------------Leader-------------------"
+        # if lb.leader is not None:
+        #     self.__print_server(lb.leader)
+        # else:
+        #     print "No Leader Elected"
+        # print "\n---------------Followers--------------"
+        # if len(lb.followers) < 1:
+        #     print "No Followers"
+        # else:
+        #     self.__print_servers(lb.followers)
+        # print "\n================================================================\n\n"
+        # time.sleep(5)
 
     def __add_new_server(self, cip, cport, sip, sport, lbip, lbport):
         p = multiprocessing.current_process()
@@ -61,19 +62,25 @@ class StoreTest:
 
     def __add_new_client(self, cip, cport, lbip, lbport):
         client = Client(cip, cport)
-        server_addr = ProtoParser.parse_srv_addr(client.get_server(lbip, lbport))
+        server_addr = ProtoParser.parse_srv_addr(
+            client.get_server(lbip, lbport))
         print "server ", server_addr
         client.set("hello", "1", server_addr[0], int(server_addr[1]))
-        print "get result, ", client.get("hello", server_addr[0], int(server_addr[1]))
+        print "get result, ", client.get("hello", server_addr[0],
+                                         int(server_addr[1]))
 
     def __add_new_client_with_random(self, cip, cport, lbip, lbport):
         client = Client(cip, cport)
-        server_addr = ProtoParser.parse_srv_addr(client.get_server(lbip, lbport))
+        server_addr = ProtoParser.parse_srv_addr(
+            client.get_server(lbip, lbport))
         print "server ", server_addr
-        for i in xrange(1, 10):
-            print "round [{}] for client [{}]".format(i,cport)
-            client.set(str(randint(0, 5)), str(randint(0, 5)), server_addr[0], int(server_addr[1]))
-            print "get result, ", client.get("hello", server_addr[0], int(server_addr[1]))
+        for i in xrange(1, 5):
+            print "round [{}] for client [{}]".format(i, cport)
+            key = str(randint(0, 5))
+            client.set(str(randint(0, 5)), str(randint(0, 5)), server_addr[0],
+                       int(server_addr[1]))
+            print "get result, ", key, client.get(key, server_addr[0],
+                                                  int(server_addr[1]))
 
     # Happy Case
     # 1. Add Load Balancer
@@ -81,7 +88,9 @@ class StoreTest:
     # 3. No Kill
     def test_case_1(self, lb, servers, clients):
         lb_p = multiprocessing.Process(target=self.__add_new_lb,
-                                       args=(lb[0][0], lb[0][1], lb[1][0], lb[1][1]),
+                                       args=(
+                                           lb[0][0], lb[0][1], lb[1][0],
+                                           lb[1][1]),
                                        name='load_balancer')
         lb_p.start()
         self.load_balancer = lb_p
@@ -118,14 +127,15 @@ class StoreTest:
         for cli_p in self.clients:
             cli_p.join()
 
-
     # 1. 1 LB
     # 2. 4 Server
     # 3. 4 clients
     # 4. Random set/get for 100 run
     def test_case_2(self, lb, servers, client):
         lb_p = multiprocessing.Process(target=self.__add_new_lb,
-                                       args=(lb[0][0], lb[0][1], lb[1][0], lb[1][1]),
+                                       args=(
+                                           lb[0][0], lb[0][1], lb[1][0],
+                                           lb[1][1]),
                                        name='load_balancer')
         lb_p.start()
         self.load_balancer = lb_p
@@ -146,17 +156,81 @@ class StoreTest:
 
         time.sleep(2)
         for client in clients:
-            client_p = multiprocessing.Process(target=self.__add_new_client_with_random,
-                                               args=(client[0],
-                                                     client[1],
-                                                     lb[0][0],
-                                                     lb[0][1]),
-                                               name='client')
+            client_p = multiprocessing.Process(
+                target=self.__add_new_client_with_random,
+                args=(client[0],
+                      client[1],
+                      lb[0][0],
+                      lb[0][1]),
+                name='client')
             client_p.start()
             self.clients.append(client_p)
             time.sleep(2)
 
         self.load_balancer.join()
+        for srv_p in self.servers:
+            srv_p.join()
+        for cli_p in self.clients:
+            cli_p.join()
+
+    def __add_new_test_server(self, i):
+        srv_p = multiprocessing.Process(target=self.__add_new_server,
+                                        args=(servers[i][0][0],
+                                              servers[i][0][1],
+                                              servers[i][1][0],
+                                              servers[i][1][1],
+                                              servers[i][2][0],
+                                              servers[i][2][1]),
+                                        name='server')
+        srv_p.start()
+        self.servers.append(srv_p)
+
+    def test_case_3(self, lb, servers, client):
+        lb_p = multiprocessing.Process(target=self.__add_new_lb,
+                                       args=(
+                                           lb[0][0], lb[0][1], lb[1][0],
+                                           lb[1][1]),
+                                       name='load_balancer')
+        lb_p.start()
+        self.load_balancer = lb_p
+        time.sleep(2)
+
+        for i, srv in enumerate(servers):
+            srv_p = multiprocessing.Process(target=self.__add_new_server,
+                                            args=(srv[0][0],
+                                                  srv[0][1],
+                                                  srv[1][0],
+                                                  srv[1][1],
+                                                  srv[2][0],
+                                                  srv[2][1]),
+                                            name='server')
+            srv_p.start()
+            self.servers.append(srv_p)
+            time.sleep(1)
+
+        time.sleep(2)
+
+        killed = False
+
+        for i, client in enumerate(clients):
+            client_p = multiprocessing.Process(
+                target=self.__add_new_client_with_random,
+                args=(client[0],
+                      client[1],
+                      lb[0][0],
+                      lb[0][1]),
+                name='client')
+            client_p.start()
+            self.clients.append(client_p)
+            if i == 3:
+                self.servers.pop(4).terminate()
+                time.sleep(10)
+                threading.Timer(5, self.__add_new_test_server, args=(4,)).start()
+
+            time.sleep(2)
+
+        self.load_balancer.join()
+
         for srv_p in self.servers:
             srv_p.join()
         for cli_p in self.clients:
@@ -180,5 +254,5 @@ if __name__ == "__main__":
         ('127.0.0.1', 7004),
         ('127.0.0.1', 7005),
     ]
-    st.test_case_1(lb, servers, clients)
+    st.test_case_3(lb, servers, clients)
     # st.test_case_2(lb, servers, clients)

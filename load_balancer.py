@@ -7,6 +7,7 @@ import socket
 import threading
 import time
 from random import randint
+
 from request_parser import ProtoParser
 
 HEART_BEAT = 1
@@ -35,26 +36,30 @@ class LoadBalancer:
     def __listen_server(self):
         while True:
             (msg, (ip, port)) = self.server_socket.recvfrom(1000)
-            threading.Thread(target=self.__process_server_request, args=(json.loads(msg), (ip, port))).start()
+            threading.Thread(target=self.__process_server_request,
+                             args=(json.loads(msg), (ip, port))).start()
 
     def __listen_client(self):
         self.socket.listen(50)
         while True:
             (rec_socket, (ip, port)) = self.socket.accept()
             # print "got client req"
-            threading.Thread(target=self.__process_client_request, args=(ip, port, rec_socket,)).start()
+            threading.Thread(target=self.__process_client_request,
+                             args=(ip, port, rec_socket,)).start()
 
     def __process_client_request(self, cip, cport, client_sock):
         msg = client_sock.recv(1000)
         parsed_msg = ProtoParser.parse(msg)
         if parsed_msg[0] == "get-servers":
-            resp = self.leader['client_ip'] + ":" + str(self.leader["client_port"]) + "\r\nend\r\n"
+            resp = self.leader['client_ip'] + ":" + str(
+                self.leader["client_port"]) + "\r\nend\r\n"
             client_sock.sendall(resp)
 
     def __get_leader_addr(self):
         return self.leader['server_ip'], self.leader['server_port']
 
-    def __register_server(self, client_ip, client_port, server_ip, server_port, ret_ip, ret_port):
+    def __register_server(self, client_ip, client_port, server_ip, server_port,
+                          ret_ip, ret_port):
         # STEP 1: Add the server to the server list.
         if self.leader is not None:
             self.followers.append({
@@ -83,7 +88,8 @@ class LoadBalancer:
             server_ip = msg['server_ip']
             server_port = msg['server_port']
             with self.lock:
-                self.__register_server(client_ip, client_port, server_ip, server_port, rec_sock_addr[0],
+                self.__register_server(client_ip, client_port, server_ip,
+                                       server_port, rec_sock_addr[0],
                                        rec_sock_addr[1])
 
     def start(self):
@@ -122,7 +128,7 @@ class LoadBalancer:
                     self.leader['server_ip'], self.leader['server_port']))
                 msg, addr = sock.recvfrom(1000)
                 if msg == 'ok':
-                    print "alive"
+                    print "alive", self.leader['server_port']
                     time.sleep(HEART_BEAT)
             except socket.timeout:
                 print "dead"
@@ -143,7 +149,8 @@ class LoadBalancer:
                 current_followers.append(follower)
         with self.lock:
             self.followers = current_followers
-            self.leader = self.followers.pop(randint(0, len(self.followers)))
+            self.leader = self.followers.pop(
+                randint(0, len(self.followers) - 1))
 
     def get_server_info(self, ip, port):
         # STEP 1: Get server info from the requested server.
