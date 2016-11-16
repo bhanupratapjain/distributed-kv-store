@@ -1,7 +1,7 @@
 import json
 import socket
 import threading
-
+import constants
 
 # Should Sync with other servers
 # Register with LB
@@ -36,13 +36,13 @@ class Synchronizer:
              "client_ip": self.client_address[0],
              "client_port": self.client_address[1]}
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(30)
+        sock.settimeout(constants.SOCKET_TIMEOUT_30)
         retries = 0
         while True:
             try:
                 sock.sendto(json.dumps(d), self.lb_address)
                 # print sock.getsockname()
-                msg, addr = sock.recvfrom(1000)
+                msg, addr = sock.recvfrom(constants.BUFFER_SIZE)
                 d = json.loads(msg)
                 self.leader = (d['leader_ip'], d['leader_port'])
                 break
@@ -81,7 +81,7 @@ class Synchronizer:
 
     def __listen(self):
         while True:
-            msg, addr = self.socket.recvfrom(1000)
+            msg, addr = self.socket.recvfrom(constants.BUFFER_SIZE)
             d = json.loads(msg)
             self.__parser_server(d, addr)
 
@@ -107,7 +107,7 @@ class Synchronizer:
 
     def __sync_keystore(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(30)
+        sock.settimeout(constants.SOCKET_TIMEOUT_30)
 
         # Fixing The Difference
         self.log_handler.log_index = self.log_handler.log_commit_index
@@ -118,7 +118,7 @@ class Synchronizer:
         logs = None
         js = ""
         while True:
-            msg, addr = sock.recvfrom(1000)
+            msg, addr = sock.recvfrom(constants.BUFFER_SIZE)
             js += msg
             # print js
             try:
@@ -141,12 +141,12 @@ class Synchronizer:
     def sync_log(self, key, value):
         d = {'operation': 'log', 'key': key, 'value': value}
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(5)
+        sock.settimeout(constants.SOCKET_TIMEOUT)
         done = []
         for server in self.servers:
             try:
                 sock.sendto(json.dumps(d), server)
-                msg, addr = sock.recvfrom(1000)
+                msg, addr = sock.recvfrom(constants.BUFFER_SIZE)
                 if msg == 'Ok':
                     done.append(server)
             except socket.timeout:
@@ -172,5 +172,5 @@ class Synchronizer:
 
 if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(30)
-    sock.recvfrom(1000)
+    sock.settimeout(constants.SOCKET_TIMEOUT_30)
+    sock.recvfrom(constants.BUFFER_SIZE)

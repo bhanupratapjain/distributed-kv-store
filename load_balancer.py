@@ -7,6 +7,7 @@ import socket
 import threading
 import time
 from random import randint
+import constants
 
 from request_parser import ProtoParser
 
@@ -35,12 +36,12 @@ class LoadBalancer:
 
     def __listen_server(self):
         while True:
-            (msg, (ip, port)) = self.server_socket.recvfrom(1000)
+            (msg, (ip, port)) = self.server_socket.recvfrom(constants.BUFFER_SIZE)
             threading.Thread(target=self.__process_server_request,
                              args=(json.loads(msg), (ip, port))).start()
 
     def __listen_client(self):
-        self.socket.listen(50)
+        self.socket.listen(constants.LOAD_BALANCER_QUEUE_SIZE)
         while True:
             (rec_socket, (ip, port)) = self.socket.accept()
             # print "got client req"
@@ -48,7 +49,7 @@ class LoadBalancer:
                              args=(ip, port, rec_socket,)).start()
 
     def __process_client_request(self, cip, cport, client_sock):
-        msg = client_sock.recv(1000)
+        msg = client_sock.recv(constants.BUFFER_SIZE)
         parsed_msg = ProtoParser.parse(msg)
         if parsed_msg[0] == "get-servers":
             resp = self.leader['client_ip'] + ":" + str(
@@ -122,11 +123,11 @@ class LoadBalancer:
             # Check for leader heartbeat and update server list.
             data = {"operation": "heartbeat", "servers": local_followers}
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.settimeout(5)
+            sock.settimeout(constants.SOCKET_TIMEOUT)
             try:
                 sock.sendto(json.dumps(data), (
                     self.leader['server_ip'], self.leader['server_port']))
-                msg, addr = sock.recvfrom(1000)
+                msg, addr = sock.recvfrom(constants.BUFFER_SIZE)
                 if msg == 'ok':
                     print "alive", self.leader['server_port']
                     time.sleep(HEART_BEAT)
@@ -144,7 +145,7 @@ class LoadBalancer:
         for follower in self.followers:
             sock.sendto(json.dumps(data),
                         (follower['server_ip'], follower['server_port']))
-            msg, addr = sock.recvfrom(1000)
+            msg, addr = sock.recvfrom(constants.BUFFER_SIZE)
             if msg == "ok":
                 current_followers.append(follower)
         with self.lock:

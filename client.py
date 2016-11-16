@@ -1,5 +1,5 @@
 import socket
-
+import constants
 
 class Client:
     def __init__(self, ip, port):
@@ -11,7 +11,7 @@ class Client:
             socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((sip, sport))
         sock.send("get " + key + "\r\n")
-        msg = sock.recv(1000)
+        msg = sock.recv(constants.BUFFER_SIZE)
         sock.close()
         return msg
 
@@ -20,7 +20,7 @@ class Client:
             socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((sip, sport))
         sock.send("set " + key + " 0 0 " + value + " [noreply]\r\n")
-        msg = sock.recv(1000)
+        msg = sock.recv(constants.BUFFER_SIZE)
         print msg
         sock.close()
 
@@ -29,7 +29,7 @@ class Client:
             socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((sip, sport))
         sock.send("get-servers")
-        msg = sock.recv(1000)
+        msg = sock.recv(constants.BUFFER_SIZE)
         # print msg
         sock.close()
         return msg

@@ -5,7 +5,7 @@ import time
 
 import request_parser
 from keystore import KeyStore
-
+import constants
 
 class Server:
     def __init__(self, cip, cport, sip, sport, lbip, lbport):
@@ -26,10 +26,10 @@ class Server:
         threading.Thread(target=self.store.start).start()
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((self.cip, self.cport))
-        self.socket.listen(5)
+        self.socket.listen(constants.LEADER_QUEUE_SIZE)
         while 1:
             (clientsocket, address) = self.socket.accept()
-            msg = clientsocket.recv(1000)
+            msg = clientsocket.recv(constants.BUFFER_SIZE)
             parts = request_parser.ProtoParser.parse(msg)
             t = threading.Thread(target=self.__process,
                                  args=(clientsocket, parts))
