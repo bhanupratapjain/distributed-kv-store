@@ -30,12 +30,16 @@ class KeyStore:
     def set(self, key, value):
         # Appends Log
         self.log_handler.append(key, value)
+        print "index for {} is {}".format(self.synchronizer.client_address, self.log_handler.get_recent_index())
 
         # Syncs Log across servers
         self.synchronizer.sync_log(key, value)
 
         # Sets Key in File
         self.file_handler.set(key, value)
+
+        # Increase the commit index
+        self.log_handler.increase_commit_index()
 
         # Commits on all servers
         self.synchronizer.commit(key, value)

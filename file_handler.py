@@ -1,9 +1,9 @@
 # Gets or Sets to the file should use locks and raise exceptions
 
-from test import Test
 import threading
-from tempfile import mkstemp
 from shutil import move
+from tempfile import mkstemp
+
 from os import remove, close
 
 

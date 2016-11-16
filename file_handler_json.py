@@ -2,7 +2,9 @@
 
 import json
 import threading
-from test import Test
+
+from tests.test import Test
+
 
 class FileHandler:
     def __init__(self, store_location):

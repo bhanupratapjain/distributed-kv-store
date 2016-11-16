@@ -25,6 +25,7 @@ class Client:
         sock.close()
 
     def get_server(self, sip, sport):
+        print "creating scoket", sip, sport
         sock = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((sip, sport))

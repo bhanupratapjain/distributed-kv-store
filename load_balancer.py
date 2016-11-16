@@ -41,6 +41,7 @@ class LoadBalancer:
         self.socket.listen(50)
         while True:
             (rec_socket, (ip, port)) = self.socket.accept()
+            print "got client req"
             threading.Thread(target=self.__process_client_request, args=(ip, port, rec_socket,)).start()
 
     def __process_client_request(self, cip, cport, client_sock):

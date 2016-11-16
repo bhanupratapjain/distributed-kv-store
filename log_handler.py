@@ -1,7 +1,7 @@
 # TODO log_index default is 0 or else
 # TODO delete last log index row by default
 import threading
-from test_log import TestLog
+
 
 class LogHandler:
     def __init__(self, log_location):
@@ -13,7 +13,7 @@ class LogHandler:
 
     def __init_files(self):
         with self.lock:
-            open(self.log_location, 'a')
+            open(self.log_location, 'a').close()
             self.delete_last_line()
 
     # check mismatch and append
