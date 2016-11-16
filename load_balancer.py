@@ -41,7 +41,7 @@ class LoadBalancer:
         self.socket.listen(50)
         while True:
             (rec_socket, (ip, port)) = self.socket.accept()
-            print "got client req"
+            # print "got client req"
             threading.Thread(target=self.__process_client_request, args=(ip, port, rec_socket,)).start()
 
     def __process_client_request(self, cip, cport, client_sock):
@@ -95,6 +95,8 @@ class LoadBalancer:
         server_socket_thread.start()
         # Create a heartbeat thread every 30 sec.
         threading.Thread(target=self.__heart_beat).start()
+        client_socket_thread.join()
+        server_socket_thread.join()
 
     def __heart_beat(self):
         while True:

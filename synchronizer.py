@@ -61,7 +61,6 @@ class Synchronizer:
 
     def __parser_server(self, d, addr):
         if d['operation'] == 'log':
-            print "appending log"
             self.__append_log(d, addr)
         elif d['operation'] == 'commit':
             t = self.log_handler.get_recent()

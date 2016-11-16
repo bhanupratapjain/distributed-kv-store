@@ -30,7 +30,6 @@ class KeyStore:
     def set(self, key, value):
         # Appends Log
         self.log_handler.append(key, value)
-        print "index for {} is {}".format(self.synchronizer.client_address, self.log_handler.get_recent_index())
 
         # Syncs Log across servers
         self.synchronizer.sync_log(key, value)
