@@ -50,8 +50,10 @@ class LoadBalancer:
 
     def __process_client_request(self, cip, cport, client_sock):
         msg = client_sock.recv(constants.BUFFER_SIZE)
-        parsed_msg = ProtoParser.parse(msg)
-        if parsed_msg[0] == "get-servers":
+        #parsed_msg = ProtoParser.parse(msg)
+        parsed_msg = ProtoParser.parse_block(msg)
+        operation = parsed_msg.iterkeys().next()
+        if operation == "get-servers":
             resp = self.leader['client_ip'] + ":" + str(
                 self.leader["client_port"]) + "\r\nend\r\n"
             client_sock.sendall(resp)

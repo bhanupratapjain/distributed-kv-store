@@ -30,10 +30,28 @@ class Server:
         while 1:
             (clientsocket, address) = self.socket.accept()
             msg = clientsocket.recv(constants.BUFFER_SIZE)
-            parts = request_parser.ProtoParser.parse(msg)
-            t = threading.Thread(target=self.__process,
+            #parts = request_parser.ProtoParser.parse(msg)
+            #t = threading.Thread(target=self.__process,
+            #                     args=(clientsocket, parts))
+            parts = request_parser.ProtoParser.parse_block(msg)
+            t = threading.Thread(target=self.__process_block,
                                  args=(clientsocket, parts))
             t.start()
+
+    def __process_block(self, clientsocket, parts_block):
+        operation = parts_block.iterkeys().next()
+        data_block = parts_block[operation]
+        if operation == "set":
+            for parts in data_block:
+                self.set(parts[0], parts[1])
+            clientsocket.send("STORED\r\n")
+        elif operation == "get":
+            res = "VALUE "
+            for parts in data_block:
+                value = self.get(parts[0])
+                res = res+parts[0]+" 0 "+str(value)+"\r\n"
+            clientsocket.send(res)
+            print res
 
     def __process(self, clientsocket, parts):
         if parts[0] == "set":
