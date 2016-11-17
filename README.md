@@ -123,7 +123,6 @@ balancer include
   and will not contain any special characters especially '\r\n'.
 - Requests are `utf-8` encoded.
 - noreply in set API is ignored
-- 
 
 ### Algorithm
 Our algorithm is inspired from [_The Raft Consensus
