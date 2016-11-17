@@ -82,11 +82,11 @@ Example: 1 abc value
 
 The entire idea of maintaining the logs is to achieve consensus in an
 event of partition of server failures. At every point of time, the
-`log-file` off the live servers in the network have should always
+`log-file` of the live servers in the network should always
 reflect the same data.
 
 ### Keystore File
-Actual data on servers in maintained in a file stored on the disk and is
+Actual data on servers is maintained in a file stored on the disk and is
 called a `keystore-file`. A sample entry in a `keystore-file` would
 look like
 
@@ -106,11 +106,11 @@ balancer include
 - Register a new server in the network.
 - Remove a dead or partitioned server from the network.
 - Heartbeat leader every t seconds, to check if's alive.
-- Hold an election to elect a new leader if the leader dies. 
+- Elect a new leader if the leader dies. 
 
 ### Assumptions
 - If there is no response from the follower when the leader updates
-  follower logs, then the respective follower is assumed to be dead and
+  follower logs, then the respective follower is assumed to be dead (not network failure) and
   we remove it out of the system. To put this follower back into the
   network we have to manually restart it and register it to the load
   balancer. Once registered to the load balancer, it will sync itself to
@@ -119,10 +119,11 @@ balancer include
 - There is always 2 servers alive in the network. One acts as a leader
   and other as a follower. If there are less than two active servers, our
   system would be offline. 
-- We will redirect all the request to the leader. 
 - We are assuming that the data block in the `set` request is sanitized
-  and will not contain any special characters.
-- Request with `utf-8` encoding.
+  and will not contain any special characters especially '\r\n'.
+- Requests are `utf-8` encoded.
+- noreply in set API is ignored
+- 
 
 ### Algorithm
 Our algorithm is inspired from [_The Raft Consensus
@@ -150,26 +151,25 @@ mentioned above, the major operations include
           logs with the new operation.
         - If any of the follower doesn't respond with a predefined time
           frame, we assume it to be partitioned/dead. 
+        - All the followers do an index check to check if there is a mismatch 
+          between the last log index and last commit index. If there in an 
+          index mismatch the followers contact the leader to replicate the missing
+          logs and then commit all the new log entries. 
     - --Commit--
         - From the last log entry, the leader performs changes to it's data.
         - The leader requests all it's follower to do the same.
-        - Before doing an actual commit, all the followers do an index
-          check to check if there is a mismatch between the last log
-          index and last commit index. If there in an index mismatch the
-          followers contact the leader to replicate the missing logs and
-          then commit all the new log entries. 
         
 - When the leader dies, the load balancer holds a re-election among all
   the followers to elect a new leader. As at every point of time, there
   is a consensus on all the servers (leader and followers), thus this
   newly elected leader will have the latest `log-file` and
-  `keystore-file`. If the dead leader is alive, it has to be registered
+  `keystore-file`. If the dead leader is brought back, it has to be registered
   again with the load balancer as a server, and thus will act as a
   follower. On registration it will sync it's logs with the leader.
 
 - When the follower dies, the leader informs the load balancer about
   this event, and the load balancer removes this server from the
-  network. If this dead follower is alive, it has to be registered again
+  network. If this dead follower is brought back, it has to be registered again
   with the load balancer as a server. On registration it will sync it's
   logs with the leader.
 
@@ -178,7 +178,7 @@ Whenever there is a new server it has to register itself to the load
 balancer. 
 
 ## Service Discovery 
-In current implement, service discovery is static and is done by the
+In current implementation, service discovery is static and is done by the
 load balancer which makes leader to serve every client request. There is
 a lot of room for improvements here. Please check section [Proposed
 Improvements](#proposed-improvements) below.
@@ -225,10 +225,10 @@ Improvements](#proposed-improvements) below.
 
 ## Partition Tolerance
 Whenever there is a partition in the network, all followers that are
-partitioned from the leader are considered to be out of the network.
+partitioned from the leader are considered to be out of the network and dead.
 These servers need to register to the load balancer to come back into
 the network. Once the registration is successful, these servers will
-sync to the the state of the leader.
+sync to the state of the leader.
 
 ## Consistency
 We maintain a consensus/consistency with the leader-follower approach
@@ -261,8 +261,6 @@ following strategy
   broadcast a read lock to all the followers. All the subsequent read
   request on any server for that particular record will wait until the
   the read lock is released by the leader. 
-
-
 
 ## Team
 - [bhanupratapjain](https://github.ccs.neu.edu/bhanupratapjain)
