@@ -31,6 +31,26 @@ class ProtoParser:
         ret_val[operation] = data_block
         return ret_val
 
+
+    @staticmethod
+    def parse_first_line(msg):
+        msg_parts = msg.strip().split("\r\n")
+        operation = msg_parts[0]
+        key = ""
+        val = ""
+        data_block = []
+        t = dict()
+        if operation == "set":
+            bytes = msg_parts[4]
+            key = msg_parts[1]
+            t[operation] = [key,bytes]
+        elif operation == "get":
+            val_arr = msg_parts.partition("get ")[2]
+            for tmp in val_arr:
+                data_block.append(tmp.strip())
+            t[operation] = data_block
+        return t
+    
     @staticmethod
     def parse_set(msg):
         lines = msg.split("\r\n")

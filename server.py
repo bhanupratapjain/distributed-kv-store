@@ -3,7 +3,7 @@ import threading
 
 import time
 
-import request_parser
+from request_parser import ProtoParser
 from keystore import KeyStore
 import constants
 
@@ -33,23 +33,27 @@ class Server:
             #parts = request_parser.ProtoParser.parse(msg)
             #t = threading.Thread(target=self.__process,
             #                     args=(clientsocket, parts))
-            parts = request_parser.ProtoParser.parse_block(msg)
+            while(not msg.endswith("\r\n")):
+                msg = msg + clientsocket.recv(constants.BUFFER_SIZE)
             t = threading.Thread(target=self.__process_block,
-                                 args=(clientsocket, parts))
+                                 args=(clientsocket,msg))
             t.start()
 
-    def __process_block(self, clientsocket, parts_block):
-        operation = parts_block.iterkeys().next()
-        data_block = parts_block[operation]
+    def __process_block(self, clientsocket, msg):
+        t = ProtoParser.parse_first_line(msg)
+        operation = t.iterkeys().next()
         if operation == "set":
-            for parts in data_block:
-                self.set(parts[0], parts[1])
+            bytes = t[operation][1]
+            key = t[operation][0]
+            print "bytes", bytes
+            val = clientsocket.recv(bytes)
+            self.set(key,val)
             clientsocket.send("STORED\r\n")
         elif operation == "get":
-            res = "VALUE "
-            for parts in data_block:
-                value = self.get(parts[0])
-                res = res+parts[0]+" 0 "+str(value)+"\r\n"
+            res = ""
+            for parts in t[operation]:
+                value = str(self.get(parts[0]))
+                res = res+"VALUE "+parts[0]+" 0 "+len(value)+"\r\n"+value+"\r\n"
             clientsocket.send(res)
             print res
 
