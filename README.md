@@ -3,21 +3,25 @@ Distributed Key Value Store
 
 ## Setup 
 - `sudo apt-get install gcc python-dev python-pip`
-- create a virtual env with `Python 2.7`
-- go to the project root 
-- run `pip install --editable .`
+- Create a virtual env with `Python 2.7`
+- Go to the project root 
+- Run `pip install .`
+- To setup store
+    -  `store addlb` : Adds the load balancer as a process.
+    -  `store addsrv` : Adds a server as a process. _(Always add a load
+       balancer before adding any server)_
+-  To setup client and make class to the store
+    - `client set` : Set a key-value to the store.
+    - `client get` : Return a value w.r.t to the key specified.
 
-## Monitor Utilities
+## Monitoring Utilities
 - `sudo apt-get install htop` - to monitor the process. 
 - `ss -l -p -n | grep ",<PID>,"` - to monitor open ports of a process.
-
 
 ## TO DO
 - Multiple gets or sets in 1 request
 - Check all the sockets are multi-threaded
 - Add targets to `cli`
-
-
 
 ## Design
 
@@ -83,7 +87,6 @@ balancer include
 - Remove a dead or partitioned server from the network.
 - Heartbeat leader every t seconds, to check if's alive.
 - Hold an election to elect a new leader if the leader dies. 
- 
 
 ### Assumptions
 - If there is no response from the follower when the leader updates
@@ -147,6 +150,11 @@ mentioned above, the major operations include
   with the load balancer as a server. On registration it will sync it's
   logs with the leader.
 
+## Network Communication 
+- Client - Load Balancer : TCP
+- Client - Leader (server): TCP
+- Leader (server) - Follower (server) : UDP
+- Load Balancer (server) - Leader (server) : UDP
 
 ## API Calls
     Client-LB protocol
@@ -199,13 +207,9 @@ available. Availability will be impacted if the number of request are
 exponential, as the the request in current implementation are redirected
 to the leader.
 
-
 ##  Improvements 
 
 ### Performance
-
-
-
 
 
 
