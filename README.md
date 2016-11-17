@@ -100,6 +100,8 @@ balancer include
   and other as a follower. If there are less than two active servers, our
   system would be offline. 
 - We will redirect all the request to the leader. 
+- We are assuming that the data block in the `set` request is sanitized
+  and will not contain any special characters.
 
 ### Algorithm
 Our algorithm is inspired from [_The Raft Consensus
@@ -151,7 +153,7 @@ mentioned above, the major operations include
   logs with the leader.
 
 ## Network Communication 
-- Client - Load Balancer : TCP
+- Client - Load Balancer (server) : TCP
 - Client - Leader (server): TCP
 - Leader (server) - Follower (server) : UDP
 - Load Balancer (server) - Leader (server) : UDP
