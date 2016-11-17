@@ -263,7 +263,7 @@ following strategy
   the operation. 
 - The `get` operation can be performed by both the leader or the
   follower.
-- In order to achieve consensus during write operation, the leader with
+- In order to achieve consensus during `set` operation, the leader with
   broadcast a read lock to all the followers. All the subsequent read
   request on any server for that particular record will wait until the
   the read lock is released by the leader. 
