@@ -30,7 +30,7 @@ class Client:
         sock = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((sip, sport))
-        sock.send("set " + key + " 0 0 " + str(len(value)) + "\r\n"+value+"\r\n")
+        sock.send("set " + key + " 0 0 " + str(len(value)) + "\r\n" + value + "\r\n")
         msg = sock.recv(constants.BUFFER_SIZE)
         sock.close()
         if msg == "STORED\r\n":
@@ -55,14 +55,14 @@ def cli():
 
 
 @cli.command()
-@click.argument("ip")
-@click.argument("port")
-@click.argument("key")
-@click.argument("value")
-def set(ip, port, key, value):
+@click.option("-lbip", default="127.0.0.1", prompt=True, required=True)
+@click.option("-lbport", default=5002, prompt=True, required=True)
+@click.option("-key", prompt=True, required=True)
+@click.option("-value", prompt=True, required=True)
+def set(lbip, lbport, key, value):
     client = Client()
-    server = client.get_server(ip, int(port))
-    result = client.set(key,value,server[0],int(server[1]))
+    server = client.get_server(lbip, int(lbport))
+    result = client.set(key, value, server[0], int(server[1]))
     if result:
         click.echo("Success")
     else:
@@ -70,12 +70,12 @@ def set(ip, port, key, value):
 
 
 @cli.command()
-@click.argument("ip")
-@click.argument("port")
-@click.argument('keys', nargs=-1, required=True)
-def get(ip, port, keys):
+@click.option("-lbip", default="127.0.0.1", prompt=True, required=True)
+@click.option("-lbport", default=5002, prompt=True, required=True)
+@click.option('-keys', required=True, prompt=True)
+def get(lbip, lbport, keys):
     client = Client()
-    server = client.get_server(ip, int(port))
+    server = client.get_server(lbip, int(lbport))
     response = client.get(keys, server[0], int(server[1]))
     parsed = ProtoParser.parse_get_response(response)
 
