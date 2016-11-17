@@ -148,26 +148,64 @@ mentioned above, the major operations include
   logs with the leader.
 
 
+## API Calls
+    Client-LB protocol
+    ------------------
+    
+    Request:
+    get-servers\r\n
+    
+    Response:
+    ip:port\r\n
+    [more ip:port optional, but not all the servers, or LB is pointless]
+    end\r\n
 
-
-
-## Client (API)
-    set
-    get
-    get-servers
-
-
-
-
+    Client-server protocol
+    ----------------------
+    
+    Stripped-down memcached (get/set).
+    
+    Request:
+    get <key>*\r\n
+    
+    Response:
+    VALUE <key> 0 <bytes>\r\n
+    <data block>\r\n
+    [... more values if multiple keys requested]
+    [Note: if a key is not found, there will be no VALUE for it in this list]
+    END\r\n
+    
+    Request:
+    set <key> 0 0 <bytes> [noreply]\r\n
+    <data block>\r\n
+    
+    Response:
+    STORED\r\n
 
 ## Partition Tolerance
-Whenever there is a partition in the network, all the nodes/servers that
-are partitioned from the leader are considered to be out of the network.
+Whenever there is a partition in the network, all followers that are
+partitioned from the leader are considered to be out of the network.
 These servers need to register to the load balancer to come back into
-the network. Once the registration is successful, these nodes will sync
-to the the state of the leader.
+the network. Once the registration is successful, these servers will
+sync to the the state of the leader.
 
-## Performance Improvement
+## Consistency
+We maintain a consensus/consistency with the leader-follower approach
+inspired from RAFT. The details have been explained earlier. 
+
+## Availability
+With min. two servers active/available the system will always be
+available. Availability will be impacted if the number of request are
+exponential, as the the request in current implementation are redirected
+to the leader.
+
+
+##  Improvements 
+
+### Performance
+
+
+
 
 
 
