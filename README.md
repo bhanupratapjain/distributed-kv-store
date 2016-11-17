@@ -1,6 +1,32 @@
 # distributed-kv-store
 Distributed Key Value Store
 
+## Table of Contents
+
+   - [distributed-kv-store](#distributed-kv-store)
+      - [Setup](#setup)
+      - [Monitoring Utilities](#monitoring-utilities)
+      - [TO DO](#to-do)
+      - [Design](#design)
+         - [Servers](#servers)
+               - [Leader](#leader)
+               - [Followers](#followers)
+         - [Log File](#log-file)
+         - [Keystore File](#keystore-file)
+         - [Load Balancer](#load-balancer)
+         - [Assumptions](#assumptions)
+         - [Algorithm](#algorithm)
+      - [Service Registration](#service-registration)
+      - [Service Discovery](#service-discovery)
+      - [Network Communication](#network-communication)
+      - [API Calls](#api-calls)
+      - [Partition Tolerance](#partition-tolerance)
+      - [Consistency](#consistency)
+      - [Availability](#availability)
+      - [Proposed Improvements](#proposed-improvements)
+      - [Team](#team)
+      
+      
 ## Setup 
 - `sudo apt-get install gcc python-dev python-pip`
 - Create a virtual env with `Python 2.7`
@@ -124,13 +150,13 @@ mentioned above, the major operations include
 
 - On every `set` call on the leader, in order to achieve consensus the
   leader does two operations:
-    - **Append**
+    - --Append--
         - The leader appends the set operation in it's `log-file`. 
         - The leader sends out request to all its follower to append the
           logs with the new operation.
         - If any of the follower doesn't respond with a predefined time
           frame, we assume it to be partitioned/dead. 
-    - **Commit**
+    - --Commit--
         - From the last log entry, the leader performs changes to it's data.
         - The leader requests all it's follower to do the same.
         - Before doing an actual commit, all the followers do an index
@@ -159,9 +185,9 @@ balancer.
 
 ## Service Discovery 
 In current implement, service discovery is static and is done by the
-load balancer which makes leader to serve every client request. There is a lot
-of room for improvements here. Please check section [Proposed
-Improvements](#Proposed Improvements) below.
+load balancer which makes leader to serve every client request. There is
+a lot of room for improvements here. Please check section [Proposed
+Improvements](#proposed-improvements) below.
 
 ## Network Communication 
 - Client - Load Balancer (server) : TCP
@@ -187,7 +213,7 @@ Improvements](#Proposed Improvements) below.
     Stripped-down memcached (get/set).
     
     Request:
-    get <key>*\r\n
+    get <key>-\r\n
     
     Response:
     VALUE <key> 0 <bytes>\r\n
@@ -222,9 +248,9 @@ to the leader.
 
 ## Proposed Improvements 
 
-The only bottleneck in the current implementation is performance, where
-all the client request are redirected to the the leader. We think that
-this can be improved by 
+The only bottleneck in the current implementation is static service
+discovery, where all the client request are redirected to the the leader
+by the load balancer. We think that this can be improved by
 
 
 
