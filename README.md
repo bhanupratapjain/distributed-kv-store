@@ -6,7 +6,6 @@ Distributed Key Value Store
    - [distributed-kv-store](#distributed-kv-store)
       - [Setup](#setup)
       - [Monitoring Utilities](#monitoring-utilities)
-      - [TO DO](#to-do)
       - [Design](#design)
          - [Servers](#servers)
                - [Leader](#leader)
@@ -43,11 +42,6 @@ Distributed Key Value Store
 ## Monitoring Utilities
 - `sudo apt-get install htop` - to monitor the process. 
 - `ss -l -p -n | grep ",<PID>,"` - to monitor open ports of a process.
-
-## TO DO
-- Multiple gets or sets in 1 request
-- Check all the sockets are multi-threaded
-- Add targets to `cli`
 
 ## Design
 
