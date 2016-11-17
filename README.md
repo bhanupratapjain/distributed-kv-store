@@ -250,7 +250,23 @@ to the leader.
 
 The only bottleneck in the current implementation is static service
 discovery, where all the client request are redirected to the the leader
-by the load balancer. We think that this can be improved by
+by the load balancer. We think that this can be improved by the
+following strategy
+
+- The load balancer can return any server (leader/follower) to the
+  client for operation. The server can be selected either through round
+  robbin or we can keep a request count for each server on the load
+  balancer.
+- All the `set` operations are redirected to the leader. If a follower
+  gets a `set` request, it will ask the leader to take control and
+  complete the operation. If a leader gets `set` then it will complete
+  the operation. 
+- The `get` operation can be performed by both the leader or the
+  follower.
+- In order to achieve consensus during write operation, the leader with
+  broadcast a read lock to all the followers. All the subsequent read
+  request on any server for that particular record will wait until the
+  the read lock is released by the leader. 
 
 
 
