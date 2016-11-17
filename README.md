@@ -102,6 +102,7 @@ balancer include
 - We will redirect all the request to the leader. 
 - We are assuming that the data block in the `set` request is sanitized
   and will not contain any special characters.
+- Request with `utf-8` encoding.
 
 ### Algorithm
 Our algorithm is inspired from [_The Raft Consensus
@@ -151,6 +152,16 @@ mentioned above, the major operations include
   network. If this dead follower is alive, it has to be registered again
   with the load balancer as a server. On registration it will sync it's
   logs with the leader.
+
+## Service Registration 
+Whenever there is a new server it has to register itself to the load
+balancer. 
+
+## Service Discovery 
+In current implement, service discovery is static and is done by the
+load balancer which makes leader to serve every client request. There is a lot
+of room for improvements here. Please check section [Proposed
+Improvements](#Proposed Improvements) below.
 
 ## Network Communication 
 - Client - Load Balancer (server) : TCP
@@ -209,9 +220,11 @@ available. Availability will be impacted if the number of request are
 exponential, as the the request in current implementation are redirected
 to the leader.
 
-##  Improvements 
+## Proposed Improvements 
 
-### Performance
+The only bottleneck in the current implementation is performance, where
+all the client request are redirected to the the leader. We think that
+this can be improved by 
 
 
 
