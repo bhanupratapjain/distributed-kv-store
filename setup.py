@@ -14,5 +14,6 @@ setup(name='Distributed Key Value Store',
       entry_points='''
         [console_scripts]
         store=store:cli
+        client=client:cli
       ''',
       zip_safe=False)

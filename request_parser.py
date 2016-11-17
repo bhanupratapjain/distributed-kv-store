@@ -34,21 +34,22 @@ class ProtoParser:
 
     @staticmethod
     def parse_first_line(msg):
-        msg_parts = msg.strip().split("\r\n")
+        msg_parts = msg.split("\r\n")[0].strip().split(" ")
         operation = msg_parts[0]
         key = ""
         val = ""
         data_block = []
-        t = dict()
+        t = None
         if operation == "set":
-            bytes = msg_parts[4]
+            bytes = int(msg_parts[4])
             key = msg_parts[1]
-            t[operation] = [key,bytes]
+            t = (operation,key,bytes)
         elif operation == "get":
-            val_arr = msg_parts.partition("get ")[2]
-            for tmp in val_arr:
-                data_block.append(tmp.strip())
-            t[operation] = data_block
+            keys = msg_parts[1:]
+            # val_arr = msg_parts.partition("get ")[2]
+            # for tmp in val_arr:
+            #     data_block.append(tmp.strip())
+            t = (operation, keys)
         return t
     
     @staticmethod
@@ -62,6 +63,33 @@ class ProtoParser:
     def parse_srv_addr(msg):
         lines = msg.split("\r\n")
         return lines[0].split(":")
+
+    @staticmethod
+    def parse_get_response(msg):
+        """
+        VALUE <key> 0 <bytes>\r\n
+        <data block>\r\n
+        [... more values if multiple keys requested]
+        [Note: if a key is not found, there will be no VALUE for it in this list]
+        END\r\n
+        """
+
+        lines = msg.split("\r\n")
+        d = {}
+        i = 0
+        while i < len(lines):
+            if lines[i] == "END":
+                break
+
+            if lines[i].startswith("VALUE"):
+                parts = lines[i].split(" ")
+                key = parts[1]
+                value = lines[i+1]
+                d[key] = value
+                i += 2
+
+        return d
+
 #if __name__ == "__main__":
     #msg = "get aaa 0 0 val\r\nbbb 0 0 val2"
     #msg = "get-servers\r\n"

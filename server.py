@@ -1,11 +1,9 @@
 import socket
 import threading
 
-import time
-
-from request_parser import ProtoParser
-from keystore import KeyStore
 import constants
+from keystore import KeyStore
+
 
 class Server:
     def __init__(self, cip, cport, sip, sport, lbip, lbport):
@@ -29,42 +27,41 @@ class Server:
         self.socket.listen(constants.LEADER_QUEUE_SIZE)
         while 1:
             (clientsocket, address) = self.socket.accept()
-            msg = clientsocket.recv(constants.BUFFER_SIZE)
-            #parts = request_parser.ProtoParser.parse(msg)
-            #t = threading.Thread(target=self.__process,
+
+            # parts = request_parser.ProtoParser.parse(msg)
+            # t = threading.Thread(target=self.__process,
             #                     args=(clientsocket, parts))
-            while(not msg.endswith("\r\n")):
-                msg = msg + clientsocket.recv(constants.BUFFER_SIZE)
+
             t = threading.Thread(target=self.__process_block,
-                                 args=(clientsocket,msg))
+                                 args=(clientsocket,))
             t.start()
 
-    def __process_block(self, clientsocket, msg):
-        t = ProtoParser.parse_first_line(msg)
-        operation = t.iterkeys().next()
-        if operation == "set":
-            bytes = t[operation][1]
-            key = t[operation][0]
-            print "bytes", bytes
-            val = clientsocket.recv(bytes)
-            self.set(key,val)
+    def __process_block(self, clientsocket):
+        msg = clientsocket.recv(constants.BUFFER_SIZE)
+        print msg
+        if msg[:3] == "set":
+            while msg.count("\r\n") < 2:
+                msg = msg + clientsocket.recv(constants.BUFFER_SIZE)
+            parts = msg.split("\r\n")
+            key = parts[0].split(" ")[1]
+            val = parts[1]
+            print msg, key, val
+            self.set(key, val)
             clientsocket.send("STORED\r\n")
-        elif operation == "get":
+        elif msg[:3] == "get":
+            while (msg.find("\r\n") == -1):
+                msg = msg + clientsocket.recv(constants.BUFFER_SIZE)
             res = ""
-            for parts in t[operation]:
-                value = str(self.get(parts[0]))
-                res = res+"VALUE "+parts[0]+" 0 "+len(value)+"\r\n"+value+"\r\n"
+            parts = msg.strip().split(" ")
+            for part in parts[1:]:
+                value = self.get(part)
+                if value is not None:
+                    res = res + "VALUE " + part + " 0 " + str(
+                        len(value)) + "\r\n" + str(value) + "\r\n"
+            print "get res ", res
+            res += "END\r\n"
             clientsocket.send(res)
-            print res
-
-    def __process(self, clientsocket, parts):
-        if parts[0] == "set":
-            self.set(parts[1], parts[2])
-            clientsocket.send("STORED\r\n")
-        elif parts[0] == "get":
-            value = self.get(parts[1])
-            res = "VALUE "+parts[1]+" 0 "+str(value)+"\r\n"
-            clientsocket.send(res)
+        clientsocket.close()
 
     def stop(self):
         pass

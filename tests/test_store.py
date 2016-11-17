@@ -1,5 +1,4 @@
 import multiprocessing
-import threading
 import time
 from random import randint
 
@@ -70,17 +69,14 @@ class StoreTest:
                                          int(server_addr[1]))
 
     def __add_new_client_with_random(self, cip, cport, lbip, lbport):
-        client = Client(cip, cport)
-        server_addr = ProtoParser.parse_srv_addr(
-            client.get_server(lbip, lbport))
+        client = Client()
+        server_addr =  client.get_server(lbip, lbport)
         print "server ", server_addr
         for i in xrange(0, 500):
-            print "round [{}] for client [{}]".format(i, cport)
+            print "Round [{}] for client [{}]".format(i, cport)
             key = str(randint(0, 1000))
-            client.set(str(randint(0, 1000)), str(randint(0, 1000)), server_addr[0],
-                       int(server_addr[1]))
-            print "get result, ", key, client.get(key, server_addr[0],
-                                                  int(server_addr[1]))
+            client.set(str(randint(0, 1000)), str(randint(0, 1000)), server_addr[0],server_addr[1])
+            print "get result, ", key, client.get((key,randint(0,1000)), server_addr[0],server_addr[1])
 
     # Happy Case
     # 1. Add Load Balancer
@@ -212,16 +208,16 @@ class StoreTest:
 
         killed = False
 
-        for i, client in enumerate(clients):
-            client_p = multiprocessing.Process(
-                target=self.__add_new_client_with_random,
-                args=(client[0],
-                      client[1],
-                      lb[0][0],
-                      lb[0][1]),
-                name='client')
-            client_p.start()
-            self.clients.append(client_p)
+        # for i, client in enumerate(clients):
+        #     client_p = multiprocessing.Process(
+        #         target=self.__add_new_client_with_random,
+        #         args=(client[0],
+        #               client[1],
+        #               lb[0][0],
+        #               lb[0][1]),
+        #         name='client')
+        #     client_p.start()
+        #     self.clients.append(client_p)
             # if i == 3:
             #     self.servers.pop(4).terminate()
             #     print "Killed Server"
@@ -229,7 +225,7 @@ class StoreTest:
             #     print "Continue Creating Clients"
             #     threading.Timer(5, self.__add_new_test_server, args=(4,)).start()
 
-            time.sleep(2)
+            # time.sleep(2)
 
         self.load_balancer.join()
 
@@ -241,7 +237,7 @@ class StoreTest:
 
 if __name__ == "__main__":
     st = StoreTest("/test_data")
-    lb = (('127.0.0.1', 5004), ('127.0.0.1', 5002))
+    lb = (('127.0.0.1', 5020), ('127.0.0.1', 5022))
     servers = [
         (('127.0.0.1', 6001), ('127.0.0.1', 6002), lb[1]),
         (('127.0.0.1', 6003), ('127.0.0.1', 6004), lb[1]),

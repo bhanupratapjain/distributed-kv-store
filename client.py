@@ -1,28 +1,42 @@
 import socket
+
+import click
+
 import constants
+from request_parser import ProtoParser
+
 
 class Client:
-    def __init__(self, ip, port):
-        self.ip = ip
-        self.port = port
-
-    def get(self, key, sip, sport):
+    def get(self, keys, sip, sport):
         sock = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((sip, sport))
-        sock.send("get " + key + "\r\n")
-        msg = sock.recv(constants.BUFFER_SIZE)
+        msg = "get "
+        for key in keys[:-1]:
+            msg += str(key) + " "
+        msg += str(keys[-1]) + "\r\n"
+        sock.send(msg)
+        tmsg = ""
+        while True:
+            pmsg = sock.recv(constants.BUFFER_SIZE)
+            if len(pmsg) == 0:
+                break
+            tmsg += pmsg
+
         sock.close()
-        return msg
+        return tmsg
 
     def set(self, key, value, sip, sport):
         sock = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((sip, sport))
-        sock.send("set " + key + " 0 0 " + value + " [noreply]\r\n")
+        sock.send("set " + key + " 0 0 " + str(len(value)) + "\r\n"+value+"\r\n")
         msg = sock.recv(constants.BUFFER_SIZE)
-        print msg
         sock.close()
+        if msg == "STORED\r\n":
+            return True
+        else:
+            return False
 
     def get_server(self, sip, sport):
         sock = socket.socket(
@@ -32,10 +46,42 @@ class Client:
         msg = sock.recv(constants.BUFFER_SIZE)
         # print msg
         sock.close()
-        return msg
+        return ProtoParser.parse_srv_addr(msg)
 
-# if __name__ == "__main__":
-#
-# client = Client("127.0.0.1", 6003, "127.0.0.1", 5003)
-# client.set("as", "2000")
-# client.get("as")
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+@click.argument("ip")
+@click.argument("port")
+@click.argument("key")
+@click.argument("value")
+def set(ip, port, key, value):
+    client = Client()
+    server = client.get_server(ip, int(port))
+    result = client.set(key,value,server[0],int(server[1]))
+    if result:
+        click.echo("Success")
+    else:
+        click.echo("Error")
+
+
+@cli.command()
+@click.argument("ip")
+@click.argument("port")
+@click.argument('keys', nargs=-1, required=True)
+def get(ip, port, keys):
+    client = Client()
+    server = client.get_server(ip, int(port))
+    response = client.get(keys, server[0], int(server[1]))
+    parsed = ProtoParser.parse_get_response(response)
+
+    for k, v in parsed.iteritems():
+        click.echo(str(k) + " " + str(v))
+
+
+if __name__ == "__main__":
+    cli()
