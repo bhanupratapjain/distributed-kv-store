@@ -261,7 +261,10 @@ following strategy
   request on any server for that particular record will wait until the
   the read lock is released by the leader. 
 
-## Team
-- [bhanupratapjain](https://github.ccs.neu.edu/bhanupratapjain)
+## Contributing 
+We love contributions from everyone. To engae, please contact [bhanupratapjain](https://github.com/bhanupratapjain) through isssues and PR
+
+## Contributors
+- [bhanupratapjain](https://github.com/bhanupratapjain)
 - [sourabhb](https://github.ccs.neu.edu/sourabhb)
-- [vignushu](https://github.ccs.neu.edu/vignushu)
+- [vigneshu](https://github.ccs.neu.edu/vigneshu)
